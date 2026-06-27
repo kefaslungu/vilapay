@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-commit hook: prevent committing .env files
+
+FILES=$(git diff --cached --name-only)
+
+for FILE in $FILES; do
+    if echo "$FILE" | grep -qE '\.env$|\.env\.[a-zA-Z]+$'; then
+        # Allow .env.example
+        if ! echo "$FILE" | grep -q '\.env\.example$'; then
+            echo "ERROR: Attempted to commit a .env file: $FILE"
+            echo "Remove it from staging: git reset HEAD $FILE"
+            exit 1
+        fi
+    fi
+done
+
+exit 0

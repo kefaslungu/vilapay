@@ -1,0 +1,89 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environment ────────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+
+# ── Django ─────────────────────────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# ── Environment variables — NEVER commit these ─────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Secrets & credentials — NEVER commit these ────────────────────────────────
+.aws/
+credentials
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+secrets.yml
+secrets.yaml
+
+# ── IDE ────────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+.project
+.settings/
+
+# ── OS ─────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Testing & coverage ─────────────────────────────────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# ── Frontend (React) ───────────────────────────────────────────────────────────
+node_modules/
+src/frontend/build/
+src/frontend/dist/
+src/frontend/.next/
+src/frontend/.nuxt/
+src/frontend/out/
+*.tsbuildinfo
+
+# ── Monitoring ─────────────────────────────────────────────────────────────────
+monitoring/prometheus/prometheus.yml
+monitoring/grafana/grafana.ini
+
+# ── Docker ─────────────────────────────────────────────────────────────────────
+.docker/
+
+# ── Celery ─────────────────────────────────────────────────────────────────────
+celerybeat-schedule
+celerybeat.pid
+
+# ── Uploads & generated files ──────────────────────────────────────────────────
+uploads/
+*.sqlite3

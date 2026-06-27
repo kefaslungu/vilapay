@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Django app metrics — django-prometheus exposes /metrics on the gunicorn port
+  - job_name: "vilapay_backend"
+    static_configs:
+      - targets: ["localhost:8000"]
+    metrics_path: "/metrics"
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node exporter (system metrics — install: apt install prometheus-node-exporter)
+  - job_name: "node"
+    static_configs:
+      - targets: ["localhost:9100"]
+
+  # Redis exporter (install: apt install prometheus-redis-exporter)
+  # - job_name: "redis"
+  #   static_configs:
+  #     - targets: ["localhost:9121"]
+
+  # PostgreSQL exporter (install: apt install prometheus-postgres-exporter)
+  # - job_name: "postgres"
+  #   static_configs:
+  #     - targets: ["localhost:9187"]

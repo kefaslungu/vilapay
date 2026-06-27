@@ -16,6 +16,7 @@ env/
 
 # ── Django ─────────────────────────────────────────────────────────────────────
 *.log
+logs/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -77,8 +78,9 @@ src/frontend/out/
 monitoring/prometheus/prometheus.yml
 monitoring/grafana/grafana.ini
 
-# ── Docker ─────────────────────────────────────────────────────────────────────
-.docker/
+# ── Deployment — keep server topology private ──────────────────────────────────
+infra/
+scripts/deploy.sh
 
 # ── Celery ─────────────────────────────────────────────────────────────────────
 celerybeat-schedule

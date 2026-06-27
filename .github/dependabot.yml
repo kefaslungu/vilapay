@@ -1,0 +1,42 @@
+version: 2
+
+updates:
+  # ── Python dependencies ───────────────────────────────────────────────────
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: "Africa/Lagos"
+    # Group all non-security updates into one PR instead of one per package —
+    # reduces review noise while still getting a weekly consolidated update.
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+        # Security updates always get their own PRs regardless of grouping
+        update-types:
+          - "minor"
+          - "patch"
+    # Only open PRs for these requirement files
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "python"
+
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: "Africa/Lagos"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"

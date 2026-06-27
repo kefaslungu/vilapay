@@ -19,9 +19,30 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"*/migrations/*" = ["E501", "F401"]
+"*/migrations/*" = ["E501", "F401", "I001"]
 "*/settings/*" = ["F405", "F403"]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+# ── Bandit (Python SAST) ──────────────────────────────────────────────────────
+[tool.bandit]
+targets = ["src/backend"]
+exclude_dirs = [
+    "src/backend/apps/*/migrations",
+    "src/backend/apps/*/tests.py",
+    "venv",
+    ".venv",
+]
+# Severity levels: LOW, MEDIUM, HIGH
+# Confidence levels: LOW, MEDIUM, HIGH
+# CI runs with -ll (medium severity+). Local runs can use -l for everything.
+skips = [
+    # B101: use of assert — acceptable in tests; already excluded above
+    "B101",
+    # B603/B607: subprocess without shell=True — we don't use subprocess,
+    # but management commands trigger this; re-enable if subprocess is added
+    "B603",
+    "B607",
+]

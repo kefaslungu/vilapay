@@ -155,3 +155,44 @@ jobs:
 
       - name: Run tests
         run: python manage.py test src/backend/apps/ --verbosity=2
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-security-${{ hashFiles('requirements/base.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-security-
+
+      - name: Install security tools
+        run: pip install bandit pip-audit
+
+      - name: Bandit — Python SAST
+        # Scans for common security issues: hardcoded secrets, unsafe functions,
+        # SQL injection patterns, subprocess misuse, etc.
+        # -r  recursive
+        # -ll report medium severity and above (low is too noisy)
+        # -x  exclude migrations and test files
+        run: |
+          bandit -r src/backend/ \
+            -ll \
+            --exclude src/backend/apps/*/migrations,src/backend/apps/*/tests.py \
+            --configfile pyproject.toml
+
+      - name: pip-audit — dependency vulnerability check
+        # Checks all installed packages against the PyPI Advisory Database.
+        # Fails the build if any known vulnerability exists in a pinned dep.
+        run: |
+          pip install -r requirements/base.txt
+          pip-audit --require-hashes=false -r requirements/base.txt

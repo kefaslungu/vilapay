@@ -20,18 +20,24 @@ class NombaProvider(BasePaymentProvider):
         if token:
             return token
 
+        headers = {"Content-Type": "application/json"}
+        if self.account_id:
+            headers["accountId"] = self.account_id
+
         response = requests.post(
             f"{self.base_url}/auth/token/issue",
             json={
-                "clientId": self.client_id,
-                "clientSecret": self.client_secret,
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "grant_type": "client_credentials",
             },
+            headers=headers,
         )
         response.raise_for_status()
         data = response.json()["data"]
-        token = data["accessToken"]
-        expires_in = data.get("expiresIn", 3600) - 60
-        cache.set("nomba_access_token", token, expires_in)
+        token = data["access_token"]
+        # expiresAt is an ISO timestamp; cache for 55 minutes as a safe default
+        cache.set("nomba_access_token", token, 55 * 60)
         return token
 
     def _headers(self):

@@ -131,6 +131,10 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # Payment provider
 PAYMENT_PROVIDER = "nomba"
 
+# Public base URL of this API — used for Nomba callback URLs etc.
+# Override in environment-specific settings.
+VILAPAY_API_BASE_URL = "https://api.vilapay.ng"
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 # Shared formatters and logger hierarchy.
 # Handlers are defined per-environment (development.py / production.py).

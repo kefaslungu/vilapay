@@ -36,6 +36,9 @@ NOMBA_ACCOUNT_ID = config("NOMBA_ACCOUNT_ID", default="")
 NOMBA_BASE_URL = "https://sandbox.nomba.com/v1"
 NOMBA_SANDBOX = True
 
+# Use ngrok (or similar) URL here when testing Nomba sandbox callbacks locally
+VILAPAY_API_BASE_URL = "http://localhost:8000"
+
 # Email — console backend in dev
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

@@ -149,7 +149,7 @@ class NombaProvider(BasePaymentProvider):
                     "amount": str(amount),
                     "currency": "NGN",
                     "accountId": self.account_id,
-                    "callbackUrl": f"{settings.ALLOWED_HOSTS[0]}/api/payments/webhooks/nomba/",
+                    "callbackUrl": f"{settings.VILAPAY_API_BASE_URL}/v1/payments/webhooks/nomba/",
                 },
             },
             headers=self._headers(),

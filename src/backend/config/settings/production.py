@@ -59,3 +59,110 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = secrets.get("EMAIL_USER", "")
 EMAIL_HOST_PASSWORD = secrets.get("EMAIL_PASSWORD", "")
 DEFAULT_FROM_EMAIL = "Vilapay <noreply@vilapay.ng>"
+
+# ── Logging (production) ──────────────────────────────────────────────────────
+# Three destinations:
+#   console   → stdout, captured by systemd/journald (short-term, searchable
+#               with `journalctl -u vilapay-backend`)
+#   app_file  → /var/log/vilapay/app.log — all INFO+ (10 MB × 10 rotations)
+#   error_file→ /var/log/vilapay/error.log — ERROR+ only for quick triage
+#               (5 MB × 20 rotations — errors are kept longer)
+#   security  → /var/log/vilapay/security.log — auth, webhook, CSRF events
+#
+# The deploy script creates /var/log/vilapay/ and sets ownership to the
+# vilapay user, so these paths will be writable at runtime.
+
+_LOG_DIR = "/var/log/vilapay"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": LOG_FORMATTERS,
+    "filters": LOG_FILTERS,
+    "handlers": {
+        # systemd/journald captures this stream
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        # Full INFO+ log — primary persistent log
+        "app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": f"{_LOG_DIR}/app.log",
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 10,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+        # ERROR+ only — open this first when something breaks
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": f"{_LOG_DIR}/error.log",
+            "maxBytes": 5 * 1024 * 1024,   # 5 MB
+            "backupCount": 20,
+            "formatter": "verbose",
+            "level": "ERROR",
+            "encoding": "utf-8",
+        },
+        # Security-specific events — separate file for audit requirements
+        "security_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": f"{_LOG_DIR}/security.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 20,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+    },
+    "root": {
+        # Catch anything not explicitly named below
+        "handlers": ["console", "app_file", "error_file"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # 4xx/5xx request errors
+        "django.request": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # Auth failures, invalid hosts, CSRF — goes to security log
+        "django.security": {
+            "handlers": ["console", "security_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Business logic — INFO in production (DEBUG is too verbose)
+        "apps": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "services": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Webhook events need the security trail
+        "services.webhooks": {
+            "handlers": ["console", "app_file", "security_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery.task": {
+            "handlers": ["console", "app_file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

@@ -130,3 +130,59 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Payment provider
 PAYMENT_PROVIDER = "nomba"
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+# Shared formatters and logger hierarchy.
+# Handlers are defined per-environment (development.py / production.py).
+#
+# Logger hierarchy:
+#   root          → catch-all for anything not named below
+#   django        → Django internals (migrations, signals, etc.)
+#   django.request → HTTP request errors (WARNING+ only — 404s are noise)
+#   django.security → Auth failures, CSRF, host header attacks — always log
+#   apps          → all code under apps/
+#   services      → all code under services/
+#   celery        → Celery worker and beat
+#
+# To temporarily enable SQL query logging in development, set the
+# django.db.backends logger to DEBUG in development.py.
+
+LOG_FORMATTERS = {
+    "verbose": {
+        # Full context: timestamp, level, logger name, message
+        # Example: 2026-06-27 14:23:01 [INFO ] services.groups: Group activated
+        "format": "{asctime} [{levelname:<7}] {name}: {message}",
+        "style": "{",
+        "datefmt": "%Y-%m-%d %H:%M:%S",
+    },
+    "simple": {
+        # For console output in development — less visual noise
+        "format": "[{levelname}] {name}: {message}",
+        "style": "{",
+    },
+}
+
+LOG_FILTERS = {
+    "require_debug_false": {
+        "()": "django.utils.log.RequireDebugFalse",
+    },
+    "require_debug_true": {
+        "()": "django.utils.log.RequireDebugTrue",
+    },
+}
+
+# Celery beat schedule
+CELERY_BEAT_SCHEDULE = {
+    "send-contribution-reminders": {
+        "task": "groups.send_contribution_reminders",
+        "schedule": 86400,  # daily (seconds)
+    },
+    "sweep-wallets-for-contributions": {
+        "task": "groups.sweep_wallets_for_contributions",
+        "schedule": 86400,  # daily
+    },
+    "check-direct-debit-statuses": {
+        "task": "payments.check_direct_debit_statuses",
+        "schedule": 3600,  # hourly
+    },
+}

@@ -30,11 +30,73 @@ CELERY_RESULT_BACKEND = config("REDIS_URL", default="redis://localhost:6379/0")
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Nomba sandbox credentials — loaded from .env in development
-NOMBA_CLIENT_ID = config("NOMBA_CLIENT_ID", default="")
-NOMBA_CLIENT_SECRET = config("NOMBA_CLIENT_SECRET", default="")
+NOMBA_CLIENT_ID = config("TEST_CLIENT_ID", default="")
+NOMBA_CLIENT_SECRET = config("TEST_PRIVATE_KEY", default="")
 NOMBA_ACCOUNT_ID = config("NOMBA_ACCOUNT_ID", default="")
-NOMBA_BASE_URL = "https://api.nomba.com/v1"
+NOMBA_BASE_URL = "https://sandbox.nomba.com/v1"
 NOMBA_SANDBOX = True
 
 # Email — console backend in dev
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# ── Logging (development) ─────────────────────────────────────────────────────
+# Everything at DEBUG to the console.
+# To see SQL queries too, change django.db.backends to DEBUG.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": LOG_FORMATTERS,
+    "filters": LOG_FILTERS,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        # Django internals — INFO so migration output stays visible
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Request errors only (skip 404s and redirects)
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # Always log security events
+        "django.security": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        # SQL query logging — uncomment when debugging DB issues
+        # "django.db.backends": {
+        #     "handlers": ["console"],
+        #     "level": "DEBUG",
+        #     "propagate": False,
+        # },
+        # App code — full DEBUG
+        "apps": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "services": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

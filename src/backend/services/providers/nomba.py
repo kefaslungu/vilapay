@@ -7,6 +7,12 @@ from django.core.cache import cache
 
 from .base import BasePaymentProvider
 
+# Default timeout for all Nomba API calls (connect, read).
+# Transfers use a longer read timeout because Nomba may take extra time
+# to process them. Override via NOMBA_REQUEST_TIMEOUT in settings if needed.
+_DEFAULT_TIMEOUT = getattr(settings, "NOMBA_REQUEST_TIMEOUT", (10, 30))
+_TRANSFER_TIMEOUT = getattr(settings, "NOMBA_TRANSFER_TIMEOUT", (10, 60))
+
 
 class NombaProvider(BasePaymentProvider):
     def __init__(self):
@@ -32,6 +38,7 @@ class NombaProvider(BasePaymentProvider):
                 "grant_type": "client_credentials",
             },
             headers=headers,
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         data = response.json()["data"]
@@ -63,13 +70,16 @@ class NombaProvider(BasePaymentProvider):
                 **kwargs,
             },
             headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
 
     def get_virtual_account(self, account_id):
         response = requests.get(
-            f"{self.base_url}/accounts/virtual/{account_id}", headers=self._headers()
+            f"{self.base_url}/accounts/virtual/{account_id}",
+            headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
@@ -86,6 +96,7 @@ class NombaProvider(BasePaymentProvider):
                 "currency": "NGN",
             },
             headers=self._headers(),
+            timeout=_TRANSFER_TIMEOUT,  # longer timeout for financial transfers
         )
         response.raise_for_status()
         return response.json()["data"]
@@ -95,13 +106,16 @@ class NombaProvider(BasePaymentProvider):
             f"{self.base_url}/transfers/account/lookup",
             json={"bankCode": bank_code, "accountNumber": account_number},
             headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
 
     def get_banks(self):
         response = requests.get(
-            f"{self.base_url}/transfers/banks", headers=self._headers()
+            f"{self.base_url}/transfers/banks",
+            headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
@@ -119,6 +133,7 @@ class NombaProvider(BasePaymentProvider):
                 "endDate": end_date,
             },
             headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
@@ -138,13 +153,16 @@ class NombaProvider(BasePaymentProvider):
                 },
             },
             headers=self._headers(),
+            timeout=_TRANSFER_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]
 
     def get_transaction(self, transaction_ref):
         response = requests.get(
-            f"{self.base_url}/transactions/{transaction_ref}", headers=self._headers()
+            f"{self.base_url}/transactions/{transaction_ref}",
+            headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()["data"]

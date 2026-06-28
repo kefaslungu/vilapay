@@ -1,22 +1,9 @@
-import json
 from datetime import timedelta
 from pathlib import Path
-
-import boto3
-from botocore.exceptions import ClientError
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 AUTH_USER_MODEL = "users.User"
-
-
-def get_secret(secret_name, region_name="eu-west-1"):
-    client = boto3.client("secretsmanager", region_name=region_name)
-    try:
-        response = client.get_secret_value(SecretId=secret_name)
-        return json.loads(response["SecretString"])
-    except ClientError as e:
-        raise e
 
 
 INSTALLED_APPS = [
@@ -120,6 +107,10 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Community rotating savings platform. Your village, your money, your turn.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SERVERS": [
+        {"url": "https://api.vilapay.ng", "description": "Production"},
+        {"url": "http://localhost:8000", "description": "Local development"},
+    ],
 }
 
 # Celery

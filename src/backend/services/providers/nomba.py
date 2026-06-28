@@ -33,9 +33,9 @@ class NombaProvider(BasePaymentProvider):
         response = requests.post(
             f"{self.base_url}/auth/token/issue",
             json={
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-                "grant_type": "client_credentials",
+                "clientId": self.client_id,
+                "clientSecret": self.client_secret,
+                "grantType": "client_credentials",
             },
             headers=headers,
             timeout=_DEFAULT_TIMEOUT,

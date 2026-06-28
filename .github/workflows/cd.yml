@@ -1,0 +1,47 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Azure VM
+    runs-on: ubuntu-latest
+    # Only deploy when the full CI pipeline succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          port: ${{ secrets.AZURE_VM_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd /srv/vilapay
+
+            echo "==> Pulling latest code..."
+            git pull origin main
+
+            echo "==> Installing/updating dependencies..."
+            venv/bin/pip install -r requirements/production.txt --quiet
+
+            echo "==> Running migrations..."
+            DJANGO_SETTINGS_MODULE=config.settings.production \
+            PYTHONPATH=/srv/vilapay/src/backend \
+            venv/bin/python manage.py migrate --noinput
+
+            echo "==> Collecting static files..."
+            DJANGO_SETTINGS_MODULE=config.settings.production \
+            PYTHONPATH=/srv/vilapay/src/backend \
+            venv/bin/python manage.py collectstatic --noinput
+
+            echo "==> Restarting services..."
+            sudo systemctl restart vilapay-backend vilapay-celery vilapay-celery-beat
+
+            echo "==> Deploy complete!"

@@ -5,62 +5,160 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Group',
+            name="Group",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('slot_count', models.PositiveSmallIntegerField(help_text='Total number of members/slots')),
-                ('contribution_amount', models.DecimalField(decimal_places=2, help_text='Amount each member contributes per cycle (NGN)', max_digits=12)),
-                ('frequency', models.CharField(choices=[('weekly', 'Weekly'), ('biweekly', 'Bi-weekly'), ('monthly', 'Monthly')], default='monthly', max_length=10)),
-                ('start_date', models.DateField()),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('active', 'Active'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='draft', max_length=12)),
-                ('nomba_sub_account_id', models.CharField(blank=True, max_length=255)),
-                ('nomba_virtual_account_id', models.CharField(blank=True, max_length=255)),
-                ('nomba_virtual_account_number', models.CharField(blank=True, max_length=20)),
-                ('nomba_virtual_account_bank', models.CharField(blank=True, max_length=100)),
-                ('current_cycle', models.PositiveSmallIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "slot_count",
+                    models.PositiveSmallIntegerField(
+                        help_text="Total number of members/slots"
+                    ),
+                ),
+                (
+                    "contribution_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Amount each member contributes per cycle (NGN)",
+                        max_digits=12,
+                    ),
+                ),
+                (
+                    "frequency",
+                    models.CharField(
+                        choices=[
+                            ("weekly", "Weekly"),
+                            ("biweekly", "Bi-weekly"),
+                            ("monthly", "Monthly"),
+                        ],
+                        default="monthly",
+                        max_length=10,
+                    ),
+                ),
+                ("start_date", models.DateField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("active", "Active"),
+                            ("completed", "Completed"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="draft",
+                        max_length=12,
+                    ),
+                ),
+                ("nomba_sub_account_id", models.CharField(blank=True, max_length=255)),
+                (
+                    "nomba_virtual_account_id",
+                    models.CharField(blank=True, max_length=255),
+                ),
+                (
+                    "nomba_virtual_account_number",
+                    models.CharField(blank=True, max_length=20),
+                ),
+                (
+                    "nomba_virtual_account_bank",
+                    models.CharField(blank=True, max_length=100),
+                ),
+                ("current_cycle", models.PositiveSmallIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='GroupCycle',
+            name="GroupCycle",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('cycle_number', models.PositiveSmallIntegerField()),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('payout_date', models.DateField()),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('collecting', 'Collecting'), ('payout_pending', 'Payout Pending'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending', max_length=16)),
-                ('total_collected', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("cycle_number", models.PositiveSmallIntegerField()),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("payout_date", models.DateField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("collecting", "Collecting"),
+                            ("payout_pending", "Payout Pending"),
+                            ("completed", "Completed"),
+                            ("failed", "Failed"),
+                        ],
+                        default="pending",
+                        max_length=16,
+                    ),
+                ),
+                (
+                    "total_collected",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['cycle_number'],
+                "ordering": ["cycle_number"],
             },
         ),
         migrations.CreateModel(
-            name='GroupMembership',
+            name="GroupMembership",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('slot_number', models.PositiveSmallIntegerField(help_text='Position in the rotation (1-based)')),
-                ('status', models.CharField(choices=[('active', 'Active'), ('left', 'Left'), ('removed', 'Removed')], default='active', max_length=10)),
-                ('joined_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "slot_number",
+                    models.PositiveSmallIntegerField(
+                        help_text="Position in the rotation (1-based)"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Active"),
+                            ("left", "Left"),
+                            ("removed", "Removed"),
+                        ],
+                        default="active",
+                        max_length=10,
+                    ),
+                ),
+                ("joined_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'ordering': ['slot_number'],
+                "ordering": ["slot_number"],
             },
         ),
     ]

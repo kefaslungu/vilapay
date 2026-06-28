@@ -35,7 +35,9 @@ class UserProfileView(APIView):
         return Response(UserProfileSerializer(request.user).data)
 
     def patch(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        serializer = UserProfileSerializer(
+            request.user, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -60,7 +62,9 @@ class BankAccountListCreateView(APIView):
         except Exception as exc:
             logger.warning("Bank account verification failed: %s", exc)
             return Response(
-                {"detail": "Could not verify account. Check bank code and account number."},
+                {
+                    "detail": "Could not verify account. Check bank code and account number."
+                },
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 

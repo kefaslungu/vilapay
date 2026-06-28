@@ -46,7 +46,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "email", "tier", "is_verified", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "email",
+            "tier",
+            "is_verified",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class UserBankAccountSerializer(serializers.ModelSerializer):
@@ -62,7 +69,13 @@ class UserBankAccountSerializer(serializers.ModelSerializer):
             "verified_at",
             "created_at",
         ]
-        read_only_fields = ["id", "bank_name", "account_name", "verified_at", "created_at"]
+        read_only_fields = [
+            "id",
+            "bank_name",
+            "account_name",
+            "verified_at",
+            "created_at",
+        ]
 
 
 class AddBankAccountSerializer(serializers.Serializer):

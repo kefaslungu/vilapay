@@ -6,46 +6,65 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('groups', '0001_initial'),
+        ("groups", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='group',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='created_groups', to=settings.AUTH_USER_MODEL),
+            model_name="group",
+            name="created_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="created_groups",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='groupcycle',
-            name='group',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cycles', to='groups.group'),
+            model_name="groupcycle",
+            name="group",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="cycles",
+                to="groups.group",
+            ),
         ),
         migrations.AddField(
-            model_name='groupmembership',
-            name='group',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to='groups.group'),
+            model_name="groupmembership",
+            name="group",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="memberships",
+                to="groups.group",
+            ),
         ),
         migrations.AddField(
-            model_name='groupmembership',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='group_memberships', to=settings.AUTH_USER_MODEL),
+            model_name="groupmembership",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="group_memberships",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='groupcycle',
-            name='recipient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='receiving_cycles', to='groups.groupmembership'),
+            model_name="groupcycle",
+            name="recipient",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="receiving_cycles",
+                to="groups.groupmembership",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='groupmembership',
-            unique_together={('group', 'slot_number'), ('group', 'user')},
+            name="groupmembership",
+            unique_together={("group", "slot_number"), ("group", "user")},
         ),
         migrations.AlterUniqueTogether(
-            name='groupcycle',
-            unique_together={('group', 'cycle_number')},
+            name="groupcycle",
+            unique_together={("group", "cycle_number")},
         ),
     ]

@@ -100,7 +100,12 @@ class JoinGroupView(APIView):
                 user=request.user,
                 slot_number=serializer.validated_data.get("slot_number"),
             )
-        except (GroupFullError, SlotTakenError, InvalidGroupStateError, ValueError) as exc:
+        except (
+            GroupFullError,
+            SlotTakenError,
+            InvalidGroupStateError,
+            ValueError,
+        ) as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Auto-create save-ahead wallet — non-fatal if it fails

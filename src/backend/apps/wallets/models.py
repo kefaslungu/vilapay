@@ -34,7 +34,9 @@ class SaveAheadWallet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.email} — {self.membership.group.name} wallet (₦{self.balance})"
+        return (
+            f"{self.user.email} — {self.membership.group.name} wallet (₦{self.balance})"
+        )
 
 
 class LedgerEntry(models.Model):

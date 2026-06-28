@@ -68,12 +68,15 @@ def sweep_wallets_for_contributions():
                 if not swept:
                     logger.info(
                         "Insufficient wallet balance for %s — '%s' cycle #%d",
-                        membership.user.email, cycle.group.name, cycle.cycle_number,
+                        membership.user.email,
+                        cycle.group.name,
+                        cycle.cycle_number,
                     )
             except SaveAheadWallet.DoesNotExist:
                 pass  # Member has no wallet — they must pay manually
             except Exception:
                 logger.exception(
                     "Error sweeping wallet for %s in cycle %s",
-                    membership.user.email, cycle.id,
+                    membership.user.email,
+                    cycle.id,
                 )

@@ -7,45 +7,127 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('groups', '0001_initial'),
+        ("groups", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SaveAheadWallet',
+            name="SaveAheadWallet",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('balance', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('nomba_virtual_account_id', models.CharField(blank=True, max_length=255)),
-                ('nomba_virtual_account_number', models.CharField(blank=True, max_length=20)),
-                ('nomba_virtual_account_bank', models.CharField(blank=True, max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('membership', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='save_ahead_wallet', to='groups.groupmembership')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='save_ahead_wallets', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "balance",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                (
+                    "nomba_virtual_account_id",
+                    models.CharField(blank=True, max_length=255),
+                ),
+                (
+                    "nomba_virtual_account_number",
+                    models.CharField(blank=True, max_length=20),
+                ),
+                (
+                    "nomba_virtual_account_bank",
+                    models.CharField(blank=True, max_length=100),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "membership",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="save_ahead_wallet",
+                        to="groups.groupmembership",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="save_ahead_wallets",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='LedgerEntry',
+            name="LedgerEntry",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('entry_type', models.CharField(choices=[('deposit', 'Deposit'), ('withdrawal', 'Withdrawal'), ('payout', 'Payout'), ('refund', 'Refund')], max_length=12)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('balance_after', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('nomba_transaction_ref', models.CharField(blank=True, db_index=True, max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='ledger_entries', to='groups.group')),
-                ('membership', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='ledger_entries', to='groups.groupmembership')),
-                ('wallet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='ledger_entries', to='wallets.saveaheadwallet')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "entry_type",
+                    models.CharField(
+                        choices=[
+                            ("deposit", "Deposit"),
+                            ("withdrawal", "Withdrawal"),
+                            ("payout", "Payout"),
+                            ("refund", "Refund"),
+                        ],
+                        max_length=12,
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("balance_after", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("description", models.CharField(blank=True, max_length=255)),
+                (
+                    "nomba_transaction_ref",
+                    models.CharField(blank=True, db_index=True, max_length=255),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "group",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="ledger_entries",
+                        to="groups.group",
+                    ),
+                ),
+                (
+                    "membership",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="ledger_entries",
+                        to="groups.groupmembership",
+                    ),
+                ),
+                (
+                    "wallet",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="ledger_entries",
+                        to="wallets.saveaheadwallet",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

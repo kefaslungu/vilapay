@@ -6,30 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('groups', '0002_initial'),
-        ('payouts', '0001_initial'),
-        ('users', '0001_initial'),
+        ("groups", "0002_initial"),
+        ("payouts", "0001_initial"),
+        ("users", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payout',
-            name='bank_account',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payouts', to='users.userbankaccount'),
+            model_name="payout",
+            name="bank_account",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="payouts",
+                to="users.userbankaccount",
+            ),
         ),
         migrations.AddField(
-            model_name='payout',
-            name='cycle',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, related_name='payout', to='groups.groupcycle'),
+            model_name="payout",
+            name="cycle",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="payout",
+                to="groups.groupcycle",
+            ),
         ),
         migrations.AddField(
-            model_name='payout',
-            name='recipient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payouts_received', to=settings.AUTH_USER_MODEL),
+            model_name="payout",
+            name="recipient",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="payouts_received",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

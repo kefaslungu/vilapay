@@ -6,7 +6,9 @@ from apps.wallets.models import LedgerEntry, SaveAheadWallet
 class SaveAheadWalletSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(source="membership.group.name", read_only=True)
     group_id = serializers.UUIDField(source="membership.group.id", read_only=True)
-    slot_number = serializers.IntegerField(source="membership.slot_number", read_only=True)
+    slot_number = serializers.IntegerField(
+        source="membership.slot_number", read_only=True
+    )
     virtual_account = serializers.SerializerMethodField()
 
     class Meta:

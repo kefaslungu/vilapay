@@ -23,10 +23,8 @@ def initiate_payout_task(self, cycle_id: str):
     from services.payouts import initiate_payout
 
     try:
-        cycle = (
-            GroupCycle.objects
-            .select_related("group", "recipient__user")
-            .get(id=cycle_id)
+        cycle = GroupCycle.objects.select_related("group", "recipient__user").get(
+            id=cycle_id
         )
         initiate_payout(cycle)
 
@@ -36,7 +34,10 @@ def initiate_payout_task(self, cycle_id: str):
     except PaymentProviderError as exc:
         logger.warning(
             "Payout failed for cycle %s (attempt %d/%d): %s",
-            cycle_id, self.request.retries + 1, self.max_retries, exc,
+            cycle_id,
+            self.request.retries + 1,
+            self.max_retries,
+            exc,
         )
         raise self.retry(exc=exc) from exc
 

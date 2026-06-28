@@ -9,6 +9,7 @@ Responsibilities:
 This module is intentionally thin: it only knows about Group and
 GroupCycle models and has no knowledge of payments or providers.
 """
+
 import calendar
 import logging
 from datetime import date, timedelta
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Date math ─────────────────────────────────────────────────────────────────
+
 
 def _add_months(d: date, months: int) -> date:
     """
@@ -57,6 +59,7 @@ def _cycle_date_range(start_date: date, cycle_index: int, frequency: str):
 
 # ── Cycle generation ──────────────────────────────────────────────────────────
 
+
 @transaction.atomic
 def generate_cycles(group: Group) -> list[GroupCycle]:
     """
@@ -67,9 +70,9 @@ def generate_cycles(group: Group) -> list[GroupCycle]:
     Cycle 1 is immediately set to COLLECTING; the rest start as PENDING.
     """
     memberships = list(
-        group.memberships
-        .filter(status=GroupMembership.Status.ACTIVE)
-        .order_by("slot_number")
+        group.memberships.filter(status=GroupMembership.Status.ACTIVE).order_by(
+            "slot_number"
+        )
     )
 
     cycles_to_create = []
@@ -77,7 +80,9 @@ def generate_cycles(group: Group) -> list[GroupCycle]:
         cycle_number = i + 1
         start, end, payout = _cycle_date_range(group.start_date, i, group.frequency)
         status = (
-            GroupCycle.Status.COLLECTING if cycle_number == 1 else GroupCycle.Status.PENDING
+            GroupCycle.Status.COLLECTING
+            if cycle_number == 1
+            else GroupCycle.Status.PENDING
         )
         cycles_to_create.append(
             GroupCycle(
@@ -98,17 +103,18 @@ def generate_cycles(group: Group) -> list[GroupCycle]:
 
 # ── Cycle queries ─────────────────────────────────────────────────────────────
 
+
 def get_current_cycle(group: Group) -> GroupCycle | None:
     """Return the group's current cycle, with recipient user pre-fetched."""
     return (
-        GroupCycle.objects
-        .filter(group=group, cycle_number=group.current_cycle)
+        GroupCycle.objects.filter(group=group, cycle_number=group.current_cycle)
         .select_related("recipient__user")
         .first()
     )
 
 
 # ── Cycle advancement ─────────────────────────────────────────────────────────
+
 
 @transaction.atomic
 def advance_cycle(group: Group) -> GroupCycle | None:

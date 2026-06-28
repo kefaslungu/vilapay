@@ -24,9 +24,9 @@ class PayoutDetailView(APIView):
 
     def get(self, request, pk):
         try:
-            payout = Payout.objects.select_related(
-                "cycle__group", "bank_account"
-            ).get(pk=pk, recipient=request.user)
+            payout = Payout.objects.select_related("cycle__group", "bank_account").get(
+                pk=pk, recipient=request.user
+            )
         except Payout.DoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(PayoutSerializer(payout).data)

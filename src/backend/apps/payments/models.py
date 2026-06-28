@@ -28,7 +28,9 @@ class Contribution(models.Model):
         related_name="contributions",
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
     payment_method = models.CharField(
         max_length=14, choices=PaymentMethod.choices, default=PaymentMethod.VA_TRANSFER
     )
@@ -66,7 +68,9 @@ class DirectDebitMandate(models.Model):
         related_name="direct_debit_mandates",
     )
     nomba_mandate_id = models.CharField(max_length=255, unique=True, blank=True)
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PENDING
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     frequency = models.CharField(max_length=10)  # mirrors Group.Frequency
     start_date = models.DateField()

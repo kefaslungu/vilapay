@@ -11,6 +11,7 @@ When a cycle becomes fully paid, this service dispatches a Celery task
 (instead of calling payouts.py directly) to keep the two domains decoupled
 and to make payout retries easy.
 """
+
 import logging
 
 from django.db import transaction
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Recording contributions ───────────────────────────────────────────────────
+
 
 @transaction.atomic
 def record_contribution(
@@ -48,11 +50,7 @@ def record_contribution(
     Raises: AlreadyPaidError, InvalidGroupStateError.
     """
     # Lock the membership row for this transaction
-    membership = (
-        GroupMembership.objects
-        .select_for_update()
-        .get(pk=membership.pk)
-    )
+    membership = GroupMembership.objects.select_for_update().get(pk=membership.pk)
 
     if cycle.status != GroupCycle.Status.COLLECTING:
         raise InvalidGroupStateError(
@@ -106,7 +104,10 @@ def record_contribution(
 
     logger.info(
         "Contribution recorded: %s paid ₦%s for '%s' cycle #%d",
-        membership.user.email, amount, cycle.group.name, cycle.cycle_number,
+        membership.user.email,
+        amount,
+        cycle.group.name,
+        cycle.cycle_number,
     )
 
     if is_cycle_fully_paid(cycle):
@@ -118,20 +119,17 @@ def record_contribution(
 def record_failed_contribution(membership: GroupMembership, reason: str) -> None:
     """Increment the failure metric. Called by the direct debit task on charge failure."""
     payment_failure.labels(reason=reason).inc()
-    logger.warning(
-        "Contribution failed for %s: %s", membership.user.email, reason
-    )
+    logger.warning("Contribution failed for %s: %s", membership.user.email, reason)
 
 
 # ── Cycle completion check ────────────────────────────────────────────────────
 
+
 def is_cycle_fully_paid(cycle: GroupCycle) -> bool:
     """True when every active member has a completed contribution this cycle."""
-    active_count = (
-        cycle.group.memberships
-        .filter(status=GroupMembership.Status.ACTIVE)
-        .count()
-    )
+    active_count = cycle.group.memberships.filter(
+        status=GroupMembership.Status.ACTIVE
+    ).count()
     paid_count = cycle.contributions.filter(
         status=Contribution.Status.COMPLETED
     ).count()
@@ -143,20 +141,18 @@ def get_outstanding_members(cycle: GroupCycle):
     Return active memberships that have NOT yet paid for this cycle.
     Used by reminders and wallet-sweep tasks.
     """
-    paid_ids = (
-        cycle.contributions
-        .filter(status=Contribution.Status.COMPLETED)
-        .values_list("member_id", flat=True)
-    )
+    paid_ids = cycle.contributions.filter(
+        status=Contribution.Status.COMPLETED
+    ).values_list("member_id", flat=True)
     return (
-        cycle.group.memberships
-        .filter(status=GroupMembership.Status.ACTIVE)
+        cycle.group.memberships.filter(status=GroupMembership.Status.ACTIVE)
         .exclude(id__in=paid_ids)
         .select_related("user")
     )
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
+
 
 def _trigger_payout(cycle: GroupCycle) -> None:
     """
@@ -168,8 +164,10 @@ def _trigger_payout(cycle: GroupCycle) -> None:
     )
     logger.info(
         "Cycle #%d of '%s' fully paid — dispatching payout task.",
-        cycle.cycle_number, cycle.group.name,
+        cycle.cycle_number,
+        cycle.group.name,
     )
     # Import here to avoid circular: contributions → tasks → payouts → (nothing)
     from apps.payouts.tasks import initiate_payout_task
+
     initiate_payout_task.delay(str(cycle.id))

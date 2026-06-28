@@ -22,7 +22,9 @@ class GroupMembershipSerializer(serializers.ModelSerializer):
 
 
 class GroupCycleSerializer(serializers.ModelSerializer):
-    recipient_slot = serializers.IntegerField(source="recipient.slot_number", read_only=True)
+    recipient_slot = serializers.IntegerField(
+        source="recipient.slot_number", read_only=True
+    )
     recipient_name = serializers.CharField(
         source="recipient.user.full_name", read_only=True
     )
@@ -44,7 +46,9 @@ class GroupCycleSerializer(serializers.ModelSerializer):
 
 class GroupSerializer(serializers.ModelSerializer):
     created_by_email = serializers.EmailField(source="created_by.email", read_only=True)
-    pot_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    pot_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
     member_count = serializers.SerializerMethodField()
     virtual_account = serializers.SerializerMethodField()
 

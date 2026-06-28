@@ -10,6 +10,7 @@ Responsibilities:
 The wallet is a convenience layer on top of the contribution system:
 sweeping a wallet simply calls record_contribution with payment_method='save_ahead'.
 """
+
 import logging
 
 from django.db import transaction
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Wallet creation ───────────────────────────────────────────────────────────
+
 
 def create_wallet(membership) -> SaveAheadWallet:
     """
@@ -38,7 +40,8 @@ def create_wallet(membership) -> SaveAheadWallet:
     _try_provision_wallet_va(wallet)
     logger.info(
         "Save-Ahead wallet created for %s in group '%s'",
-        membership.user.email, membership.group.name,
+        membership.user.email,
+        membership.group.name,
     )
     return wallet
 
@@ -47,6 +50,7 @@ def _try_provision_wallet_va(wallet: SaveAheadWallet) -> None:
     """Attempt VA provisioning; log and continue on failure."""
     try:
         from services.providers import get_payment_provider
+
         provider = get_payment_provider()
         account_ref = f"vp-wallet-{wallet.id.hex[:12]}"
         account_name = f"{wallet.user.full_name[:40]} (Save-Ahead)"
@@ -54,20 +58,25 @@ def _try_provision_wallet_va(wallet: SaveAheadWallet) -> None:
         wallet.nomba_virtual_account_id = va.get("id", "")
         wallet.nomba_virtual_account_number = va.get("accountNumber", "")
         wallet.nomba_virtual_account_bank = va.get("bankName", "")
-        wallet.save(update_fields=[
-            "nomba_virtual_account_id",
-            "nomba_virtual_account_number",
-            "nomba_virtual_account_bank",
-        ])
+        wallet.save(
+            update_fields=[
+                "nomba_virtual_account_id",
+                "nomba_virtual_account_number",
+                "nomba_virtual_account_bank",
+            ]
+        )
     except Exception as exc:
         logger.warning(
             "Could not provision VA for wallet %s (member %s): %s — "
             "wallet created without dedicated VA.",
-            wallet.id, wallet.user.email, exc,
+            wallet.id,
+            wallet.user.email,
+            exc,
         )
 
 
 # ── Deposits ──────────────────────────────────────────────────────────────────
+
 
 @transaction.atomic
 def deposit(
@@ -79,9 +88,7 @@ def deposit(
     Credit the wallet balance and record the movement in the ledger.
     Called by the webhook handler when money arrives at the wallet VA.
     """
-    SaveAheadWallet.objects.filter(pk=wallet.pk).update(
-        balance=F("balance") + amount
-    )
+    SaveAheadWallet.objects.filter(pk=wallet.pk).update(balance=F("balance") + amount)
     wallet.refresh_from_db(fields=["balance"])
 
     record_entry(
@@ -94,11 +101,14 @@ def deposit(
     )
     logger.info(
         "Wallet deposit: ₦%s for %s (new balance: ₦%s)",
-        amount, wallet.user.email, wallet.balance,
+        amount,
+        wallet.user.email,
+        wallet.balance,
     )
 
 
 # ── Sweep ─────────────────────────────────────────────────────────────────────
+
 
 @transaction.atomic
 def sweep_for_contribution(wallet: SaveAheadWallet, cycle) -> bool:
@@ -117,14 +127,14 @@ def sweep_for_contribution(wallet: SaveAheadWallet, cycle) -> bool:
     if wallet.balance < required:
         logger.info(
             "Wallet balance ₦%s < required ₦%s — skipping sweep for %s",
-            wallet.balance, required, wallet.user.email,
+            wallet.balance,
+            required,
+            wallet.user.email,
         )
         return False
 
     # Deduct from wallet first (inside the same transaction as record_contribution)
-    SaveAheadWallet.objects.filter(pk=wallet.pk).update(
-        balance=F("balance") - required
-    )
+    SaveAheadWallet.objects.filter(pk=wallet.pk).update(balance=F("balance") - required)
     record_entry(
         entry_type="withdrawal",
         amount=required,
@@ -150,12 +160,16 @@ def sweep_for_contribution(wallet: SaveAheadWallet, cycle) -> bool:
         )
         logger.info(
             "Sweep aborted — %s already paid for cycle #%d.",
-            wallet.user.email, cycle.cycle_number,
+            wallet.user.email,
+            cycle.cycle_number,
         )
         return False
 
     logger.info(
         "Wallet sweep succeeded: ₦%s for %s — '%s' cycle #%d",
-        required, wallet.user.email, cycle.group.name, cycle.cycle_number,
+        required,
+        wallet.user.email,
+        cycle.group.name,
+        cycle.cycle_number,
     )
     return True

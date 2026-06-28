@@ -14,7 +14,11 @@ urlpatterns = [
     path("login/", TokenObtainPairView.as_view(), name="auth-login"),
     path("token/refresh/", TokenRefreshView.as_view(), name="auth-token-refresh"),
     path("me/", UserProfileView.as_view(), name="auth-me"),
-    path("me/bank-accounts/", BankAccountListCreateView.as_view(), name="bank-account-list"),
+    path(
+        "me/bank-accounts/",
+        BankAccountListCreateView.as_view(),
+        name="bank-account-list",
+    ),
     path(
         "me/bank-accounts/<uuid:pk>/",
         BankAccountDetailView.as_view(),

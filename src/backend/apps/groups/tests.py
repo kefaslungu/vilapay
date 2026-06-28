@@ -53,7 +53,9 @@ class CreateGroupTest(TestCase):
         # Creator is automatically added as slot #1
         group = Group.objects.get(id=resp.data["id"])
         self.assertTrue(
-            GroupMembership.objects.filter(group=group, user=self.creator, slot_number=1).exists()
+            GroupMembership.objects.filter(
+                group=group, user=self.creator, slot_number=1
+            ).exists()
         )
 
     def test_create_group_unauthenticated(self):
@@ -123,6 +125,7 @@ class JoinGroupTest(TestCase):
 
     def test_join_nonexistent_group(self):
         import uuid
+
         client2 = APIClient()
         access = get_access(client2, self.member2.email)
         client2.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
@@ -182,7 +185,9 @@ class ActivateGroupTest(TestCase):
         creator_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
         with patch(WALLET_VA_PATCH):
-            resp = creator_client.post("/v1/groups/", {**GROUP_PAYLOAD, "slot_count": 3})
+            resp = creator_client.post(
+                "/v1/groups/", {**GROUP_PAYLOAD, "slot_count": 3}
+            )
         new_group_id = resp.data["id"]
 
         resp = self.creator_client.post(f"/v1/groups/{new_group_id}/activate/")

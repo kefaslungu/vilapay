@@ -10,6 +10,7 @@ Responsibilities:
 Activation is the key transition: it locks in membership, provisions the
 shared virtual account, and pre-generates the full cycle schedule.
 """
+
 import logging
 from datetime import date
 
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Group creation ────────────────────────────────────────────────────────────
+
 
 def create_group(
     creator,
@@ -62,6 +64,7 @@ def create_group(
 
 # ── Membership ────────────────────────────────────────────────────────────────
 
+
 def join_group(group: Group, user, slot_number: int | None = None) -> GroupMembership:
     """
     Add a user to a DRAFT group.
@@ -75,9 +78,9 @@ def join_group(group: Group, user, slot_number: int | None = None) -> GroupMembe
         )
 
     taken = set(
-        group.memberships
-        .filter(status=GroupMembership.Status.ACTIVE)
-        .values_list("slot_number", flat=True)
+        group.memberships.filter(status=GroupMembership.Status.ACTIVE).values_list(
+            "slot_number", flat=True
+        )
     )
 
     if slot_number is None:
@@ -91,11 +94,11 @@ def join_group(group: Group, user, slot_number: int | None = None) -> GroupMembe
             )
     else:
         if not (1 <= slot_number <= group.slot_count):
-            raise ValueError(
-                f"slot_number must be between 1 and {group.slot_count}."
-            )
+            raise ValueError(f"slot_number must be between 1 and {group.slot_count}.")
         if slot_number in taken:
-            raise SlotTakenError(f"Slot #{slot_number} in '{group.name}' is already taken.")
+            raise SlotTakenError(
+                f"Slot #{slot_number} in '{group.name}' is already taken."
+            )
 
     membership = GroupMembership.objects.create(
         group=group,
@@ -103,13 +106,12 @@ def join_group(group: Group, user, slot_number: int | None = None) -> GroupMembe
         slot_number=slot_number,
         status=GroupMembership.Status.ACTIVE,
     )
-    logger.info(
-        "%s joined group '%s' as slot #%d", user.email, group.name, slot_number
-    )
+    logger.info("%s joined group '%s' as slot #%d", user.email, group.name, slot_number)
     return membership
 
 
 # ── Activation ────────────────────────────────────────────────────────────────
+
 
 @transaction.atomic
 def activate_group(group: Group) -> Group:
@@ -137,16 +139,20 @@ def activate_group(group: Group) -> Group:
 
     group.status = Group.Status.ACTIVE
     group.current_cycle = 1
-    group.save(update_fields=[
-        "status", "current_cycle",
-        "nomba_virtual_account_id",
-        "nomba_virtual_account_number",
-        "nomba_virtual_account_bank",
-        "updated_at",
-    ])
+    group.save(
+        update_fields=[
+            "status",
+            "current_cycle",
+            "nomba_virtual_account_id",
+            "nomba_virtual_account_number",
+            "nomba_virtual_account_bank",
+            "updated_at",
+        ]
+    )
 
     # Deferred import — cycles has no dependency on groups, safe to call here
     from services.cycles import generate_cycles
+
     generate_cycles(group)
 
     logger.info(
@@ -184,6 +190,7 @@ def _provision_group_va(group: Group) -> None:
 
 
 # ── Cancellation ──────────────────────────────────────────────────────────────
+
 
 @transaction.atomic
 def cancel_group(group: Group, reason: str = "") -> Group:

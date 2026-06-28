@@ -91,7 +91,9 @@ class DirectDebitMandateListView(APIView):
         # Verify membership belongs to the user
         try:
             membership = GroupMembership.objects.select_related("group").get(
-                id=membership_id, user=request.user, status=GroupMembership.Status.ACTIVE
+                id=membership_id,
+                user=request.user,
+                status=GroupMembership.Status.ACTIVE,
             )
         except GroupMembership.DoesNotExist:
             return Response(
@@ -101,7 +103,9 @@ class DirectDebitMandateListView(APIView):
 
         # Verify bank account belongs to the user
         try:
-            bank_account = UserBankAccount.objects.get(id=bank_account_id, user=request.user)
+            bank_account = UserBankAccount.objects.get(
+                id=bank_account_id, user=request.user
+            )
         except UserBankAccount.DoesNotExist:
             return Response(
                 {"detail": "Bank account not found."},
@@ -112,7 +116,11 @@ class DirectDebitMandateListView(APIView):
 
         # Prevent duplicate active mandates for the same membership
         if DirectDebitMandate.objects.filter(
-            membership=membership, status__in=[DirectDebitMandate.Status.PENDING, DirectDebitMandate.Status.ACTIVE]
+            membership=membership,
+            status__in=[
+                DirectDebitMandate.Status.PENDING,
+                DirectDebitMandate.Status.ACTIVE,
+            ],
         ).exists():
             return Response(
                 {"detail": "An active mandate already exists for this membership."},
@@ -137,7 +145,9 @@ class DirectDebitMandateListView(APIView):
         except Exception:
             logger.exception("Failed to create Nomba direct debit mandate")
             return Response(
-                {"detail": "Could not create mandate with payment provider. Try again later."},
+                {
+                    "detail": "Could not create mandate with payment provider. Try again later."
+                },
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 

@@ -10,6 +10,7 @@ Responsibilities:
 Called exclusively from the async Celery task (apps/payouts/tasks.py),
 never synchronously from a request handler.
 """
+
 import logging
 import time
 
@@ -40,10 +41,8 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
     Raises: InvalidGroupStateError, PaymentProviderError.
     """
     # Re-fetch inside the transaction to guard against stale data
-    cycle = (
-        GroupCycle.objects
-        .select_related("group", "recipient__user")
-        .get(pk=cycle.pk)
+    cycle = GroupCycle.objects.select_related("group", "recipient__user").get(
+        pk=cycle.pk
     )
 
     if cycle.status != GroupCycle.Status.PAYOUT_PENDING:
@@ -74,6 +73,7 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
 
     try:
         from services.providers import get_payment_provider
+
         provider = get_payment_provider()
 
         result = provider.transfer_to_bank(
@@ -81,8 +81,7 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
             account_number=bank_account.account_number,
             amount=payout.amount,
             narration=(
-                f"Vilapay ajo payout — {cycle.group.name} "
-                f"cycle #{cycle.cycle_number}"
+                f"Vilapay ajo payout — {cycle.group.name} cycle #{cycle.cycle_number}"
             ),
             reference=reference,
         )
@@ -91,10 +90,15 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
         payout.nomba_reference = reference
         payout.status = Payout.Status.COMPLETED
         payout.completed_at = timezone.now()
-        payout.save(update_fields=[
-            "nomba_transfer_id", "nomba_reference",
-            "status", "completed_at", "updated_at",
-        ])
+        payout.save(
+            update_fields=[
+                "nomba_transfer_id",
+                "nomba_reference",
+                "status",
+                "completed_at",
+                "updated_at",
+            ]
+        )
 
         record_entry(
             entry_type="payout",
@@ -109,12 +113,16 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
 
         # Advance to next cycle (or close the group if this was the last)
         from services.cycles import advance_cycle
+
         advance_cycle(cycle.group)
 
         logger.info(
             "Payout completed: ₦%s to %s for '%s' cycle #%d (ref: %s)",
-            payout.amount, recipient.email,
-            cycle.group.name, cycle.cycle_number, reference,
+            payout.amount,
+            recipient.email,
+            cycle.group.name,
+            cycle.cycle_number,
+            reference,
         )
 
     except Exception as exc:
@@ -123,7 +131,9 @@ def initiate_payout(cycle: GroupCycle) -> Payout:
         payout.save(update_fields=["status", "failure_reason", "updated_at"])
         logger.exception(
             "Payout failed for cycle #%d of '%s': %s",
-            cycle.cycle_number, cycle.group.name, exc,
+            cycle.cycle_number,
+            cycle.group.name,
+            exc,
         )
         raise PaymentProviderError(f"Payout failed: {exc}") from exc
 

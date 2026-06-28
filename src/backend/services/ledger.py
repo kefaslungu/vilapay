@@ -10,6 +10,7 @@ Rules:
 - Balance is tracked separately per group and per wallet.
 - This module has no imports from other services — it is the foundation.
 """
+
 from decimal import Decimal
 
 

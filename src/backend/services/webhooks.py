@@ -18,6 +18,7 @@ Member identification from a group VA payment:
   the first outstanding member — but this is clearly flagged in the code
   so it can be tightened before production.
 """
+
 import json
 import logging
 import time
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Public entry point ────────────────────────────────────────────────────────
+
 
 def handle_nomba_webhook(payload: bytes, signature: str) -> dict:
     """
@@ -60,14 +62,17 @@ def handle_nomba_webhook(payload: bytes, signature: str) -> dict:
 
 # ── Signature verification ────────────────────────────────────────────────────
 
+
 def _verify_signature(payload: bytes, signature: str) -> None:
     from services.providers import get_payment_provider
+
     provider = get_payment_provider()
     if not provider.verify_webhook(payload, signature):
         raise WebhookVerificationError("Webhook signature verification failed.")
 
 
 # ── Event dispatcher ──────────────────────────────────────────────────────────
+
 
 def _dispatch(event_type: str, data: dict) -> dict:
     HANDLERS = {
@@ -86,6 +91,7 @@ def _dispatch(event_type: str, data: dict) -> dict:
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
+
 def _handle_incoming_payment(data: dict) -> dict:
     """
     Money arrived at one of our virtual accounts.
@@ -96,9 +102,8 @@ def _handle_incoming_payment(data: dict) -> dict:
     from services import contributions as contribution_svc
     from services import wallets as wallet_svc
 
-    account_number = (
-        data.get("accountNumber")
-        or data.get("destinationAccountNumber", "")
+    account_number = data.get("accountNumber") or data.get(
+        "destinationAccountNumber", ""
     )
     amount = data.get("amount", 0)
     transaction_id = data.get("transactionId", "")
@@ -116,14 +121,17 @@ def _handle_incoming_payment(data: dict) -> dict:
         ).first()
 
         if cycle is None:
-            logger.error("Payment to group VA but no collecting cycle: group %s", group.id)
+            logger.error(
+                "Payment to group VA but no collecting cycle: group %s", group.id
+            )
             return {"status": "error", "reason": "no_active_cycle"}
 
         membership = _resolve_member(cycle, reference, data)
         if membership is None:
             logger.warning(
                 "Cannot identify member for payment to group '%s' VA (ref: %s)",
-                group.name, reference,
+                group.name,
+                reference,
             )
             return {"status": "error", "reason": "member_unidentifiable"}
 
@@ -188,13 +196,16 @@ def _handle_direct_debit_success(data: dict) -> dict:
         return {"status": "error", "reason": "unknown_mandate"}
 
     from apps.groups.models import GroupCycle
+
     cycle = GroupCycle.objects.filter(
         group=mandate.membership.group,
         status=GroupCycle.Status.COLLECTING,
     ).first()
 
     if cycle is None:
-        logger.warning("Direct debit success but no collecting cycle for mandate %s", mandate_id)
+        logger.warning(
+            "Direct debit success but no collecting cycle for mandate %s", mandate_id
+        )
         return {"status": "ignored", "reason": "no_active_cycle"}
 
     contribution_svc.record_contribution(
@@ -231,6 +242,7 @@ def _handle_direct_debit_failure(data: dict) -> dict:
 
 # ── Member resolution ─────────────────────────────────────────────────────────
 
+
 def _resolve_member(cycle, reference: str, data: dict):
     """
     Identify which member made a payment to the shared group VA.
@@ -248,11 +260,15 @@ def _resolve_member(cycle, reference: str, data: dict):
 
     # Strategy 1: match by reference
     if reference:
-        pending = Contribution.objects.filter(
-            cycle=cycle,
-            nomba_reference=reference,
-            status=Contribution.Status.PENDING,
-        ).select_related("member").first()
+        pending = (
+            Contribution.objects.filter(
+                cycle=cycle,
+                nomba_reference=reference,
+                status=Contribution.Status.PENDING,
+            )
+            .select_related("member")
+            .first()
+        )
         if pending:
             return pending.member
 

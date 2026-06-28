@@ -9,13 +9,15 @@ from rest_framework.response import Response
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def api_root(request):
-    return Response({
-        "name": "Vilapay API",
-        "version": "1.0.0",
-        "description": "Community rotating savings platform",
-        "docs": request.build_absolute_uri("/v1/docs/"),
-        "status": "operational",
-    })
+    return Response(
+        {
+            "name": "Vilapay API",
+            "version": "1.0.0",
+            "description": "Community rotating savings platform",
+            "docs": request.build_absolute_uri("/v1/docs/"),
+            "status": "operational",
+        }
+    )
 
 
 urlpatterns = [

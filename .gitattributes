@@ -1,0 +1,14 @@
+# Force LF line endings for all text files (prevents CRLF issues on Windows)
+* text=auto eol=lf
+
+# Explicitly LF for Python and config files
+*.py eol=lf
+*.yml eol=lf
+*.yaml eol=lf
+*.json eol=lf
+*.md eol=lf
+*.txt eol=lf
+*.cfg eol=lf
+*.toml eol=lf
+*.conf eol=lf
+*.sh eol=lf

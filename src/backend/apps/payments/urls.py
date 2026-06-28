@@ -11,5 +11,9 @@ urlpatterns = [
     path("webhooks/nomba/", NombaWebhookView.as_view(), name="nomba-webhook"),
     path("contributions/", ContributionListView.as_view(), name="contribution-list"),
     path("mandates/", DirectDebitMandateListView.as_view(), name="mandate-list"),
-    path("mandates/<uuid:pk>/", DirectDebitMandateDetailView.as_view(), name="mandate-detail"),
+    path(
+        "mandates/<uuid:pk>/",
+        DirectDebitMandateDetailView.as_view(),
+        name="mandate-detail",
+    ),
 ]

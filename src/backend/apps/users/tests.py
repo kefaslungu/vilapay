@@ -60,17 +60,23 @@ class LoginTest(TestCase):
         self.user = make_user(password=self.password)
 
     def test_login_success_returns_tokens(self):
-        resp = self.client.post(self.url, {"email": self.user.email, "password": self.password})
+        resp = self.client.post(
+            self.url, {"email": self.user.email, "password": self.password}
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn("access", resp.data)
         self.assertIn("refresh", resp.data)
 
     def test_login_wrong_password(self):
-        resp = self.client.post(self.url, {"email": self.user.email, "password": "wrongpass"})
+        resp = self.client.post(
+            self.url, {"email": self.user.email, "password": "wrongpass"}
+        )
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_login_nonexistent_email(self):
-        resp = self.client.post(self.url, {"email": "nobody@example.com", "password": "Pass1234!"})
+        resp = self.client.post(
+            self.url, {"email": "nobody@example.com", "password": "Pass1234!"}
+        )
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
 

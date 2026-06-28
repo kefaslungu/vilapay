@@ -33,7 +33,9 @@ class Payout(models.Model):
         related_name="payouts",
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PENDING
+    )
     nomba_transfer_id = models.CharField(max_length=255, blank=True, db_index=True)
     nomba_reference = models.CharField(max_length=255, blank=True, db_index=True)
     failure_reason = models.TextField(blank=True)

@@ -33,6 +33,7 @@ python-decouple==3.8
 PyYAML==6.0.3
 redis==8.0.1
 referencing==0.37.0
+requests==2.34.2
 rpds-py==2026.5.1
 six==1.17.0
 sqlparse==0.5.5

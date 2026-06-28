@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+from datetime import UTC, datetime
 
 import requests
 from django.conf import settings
@@ -43,8 +44,17 @@ class NombaProvider(BasePaymentProvider):
         response.raise_for_status()
         data = response.json()["data"]
         token = data["access_token"]
-        # expiresAt is an ISO timestamp; cache for 55 minutes as a safe default
-        cache.set("nomba_access_token", token, 55 * 60)
+
+        # Cache until 30 minutes before the token actually expires,
+        # as recommended by Nomba. Falls back to 55 min if expiresAt is absent.
+        ttl = 55 * 60
+        expires_at = data.get("expiresAt")
+        if expires_at:
+            expiry = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            seconds_left = (expiry - datetime.now(UTC)).total_seconds()
+            ttl = max(int(seconds_left) - 30 * 60, 60)  # at least 60 s
+
+        cache.set("nomba_access_token", token, ttl)
         return token
 
     def _headers(self):

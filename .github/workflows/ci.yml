@@ -198,4 +198,4 @@ jobs:
         # Fails the build if any known vulnerability exists in a pinned dep.
         run: |
           pip install -r requirements/base.txt
-          pip-audit --require-hashes=false -r requirements/base.txt
+          pip-audit -r requirements/base.txt

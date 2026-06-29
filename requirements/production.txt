@@ -1,4 +1,4 @@
 -r base.txt
 
 # Production only
-sentry-sdk==2.29.1
+sentry-sdk==2.63.0

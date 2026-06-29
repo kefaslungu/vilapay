@@ -184,8 +184,8 @@ def _provision_group_va(group: Group) -> None:
             f"Could not provision virtual account: {exc}"
         ) from exc
 
-    group.nomba_virtual_account_id = va.get("id", "")
-    group.nomba_virtual_account_number = va.get("accountNumber", "")
+    group.nomba_virtual_account_id = va.get("accountRef", "")
+    group.nomba_virtual_account_number = va.get("bankAccountNumber", "")
     group.nomba_virtual_account_bank = va.get("bankName", "")
 
 

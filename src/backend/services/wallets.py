@@ -55,8 +55,8 @@ def _try_provision_wallet_va(wallet: SaveAheadWallet) -> None:
         account_ref = f"vp-wallet-{wallet.id.hex[:12]}"
         account_name = f"{wallet.user.full_name[:40]} (Save-Ahead)"
         va = provider.create_virtual_account(account_ref, account_name)
-        wallet.nomba_virtual_account_id = va.get("id", "")
-        wallet.nomba_virtual_account_number = va.get("accountNumber", "")
+        wallet.nomba_virtual_account_id = va.get("accountRef", "")
+        wallet.nomba_virtual_account_number = va.get("bankAccountNumber", "")
         wallet.nomba_virtual_account_bank = va.get("bankName", "")
         wallet.save(
             update_fields=[

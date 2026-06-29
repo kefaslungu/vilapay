@@ -173,7 +173,7 @@ def _provision_group_va(group: Group) -> None:
     from services.providers import get_payment_provider
 
     provider = get_payment_provider()
-    account_ref = f"vilapay-group-{group.id.hex[:12]}"
+    account_ref = f"vilapay-grp-{group.id.hex}"
     account_name = f"{group.name[:40]} (Vilapay)"
 
     try:

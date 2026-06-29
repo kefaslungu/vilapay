@@ -52,7 +52,7 @@ def _try_provision_wallet_va(wallet: SaveAheadWallet) -> None:
         from services.providers import get_payment_provider
 
         provider = get_payment_provider()
-        account_ref = f"vp-wallet-{wallet.id.hex[:12]}"
+        account_ref = f"vilapay-wlt-{wallet.id.hex}"
         account_name = f"{wallet.user.full_name[:40]} (Save-Ahead)"
         va = provider.create_virtual_account(account_ref, account_name)
         wallet.nomba_virtual_account_id = va.get("accountRef", "")

@@ -83,7 +83,10 @@ class NombaProvider(BasePaymentProvider):
             timeout=_DEFAULT_TIMEOUT,
         )
         response.raise_for_status()
-        return response.json()["data"]
+        body = response.json()
+        if "data" not in body:
+            raise ValueError(f"Unexpected Nomba response (no data key): {body}")
+        return body["data"]
 
     def get_virtual_account(self, account_id):
         response = requests.get(

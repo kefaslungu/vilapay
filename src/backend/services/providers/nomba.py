@@ -152,6 +152,29 @@ class NombaProvider(BasePaymentProvider):
         response.raise_for_status()
         return response.json()["data"]
 
+    def create_checkout_order(self, order_reference, customer_email, amount, customer_id=None):
+        response = requests.post(
+            f"{self.base_url}/checkout/order",
+            json={
+                "order": {
+                    "orderReference": order_reference,
+                    "customerId": customer_id or customer_email,
+                    "customerEmail": customer_email,
+                    "amount": str(amount),
+                    "currency": "NGN",
+                    "accountId": self.account_id,
+                    "callbackUrl": f"{settings.VILAPAY_API_BASE_URL}/v1/payments/webhooks/nomba/",
+                }
+            },
+            headers=self._headers(),
+            timeout=_DEFAULT_TIMEOUT,
+        )
+        response.raise_for_status()
+        body = response.json()
+        if "data" not in body:
+            raise ValueError(f"Unexpected Nomba response (no data key): {body}")
+        return body["data"]
+
     def charge_tokenized_card(self, token_key, amount, reference, customer_id):
         response = requests.post(
             f"{self.base_url}/checkout/tokenized-card-payment",

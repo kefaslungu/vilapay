@@ -1,11 +1,12 @@
 import logging
+import uuid
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.groups.models import GroupMembership
+from apps.groups.models import GroupCycle, GroupMembership
 from apps.payments.models import Contribution, DirectDebitMandate
 from apps.payments.serializers import (
     ContributionSerializer,
@@ -200,3 +201,103 @@ class DirectDebitMandateDetailView(APIView):
         mandate.status = DirectDebitMandate.Status.CANCELLED
         mandate.save(update_fields=["status", "updated_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ContributionCheckoutView(APIView):
+    """
+    Generate a Nomba checkout link for a member to pay their contribution
+    for the current collecting cycle.
+
+    POST /v1/payments/contributions/checkout/
+    Body: { "membership_id": "<uuid>" }
+    Returns: { "checkout_url": "...", "amount": "5000.00", "cycle_number": 1,
+               "order_reference": "..." }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        membership_id = request.data.get("membership_id")
+        if not membership_id:
+            return Response(
+                {"detail": "membership_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            membership = GroupMembership.objects.select_related("group").get(
+                id=membership_id,
+                user=request.user,
+                status=GroupMembership.Status.ACTIVE,
+            )
+        except (GroupMembership.DoesNotExist, ValueError):
+            return Response(
+                {"detail": "Active membership not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        group = membership.group
+        if group.status != group.Status.ACTIVE:
+            return Response(
+                {"detail": "Group is not active."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        cycle = GroupCycle.objects.filter(
+            group=group, status=GroupCycle.Status.COLLECTING
+        ).first()
+        if cycle is None:
+            return Response(
+                {"detail": "No active collection cycle for this group."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Check if already paid this cycle
+        if Contribution.objects.filter(
+            cycle=cycle,
+            member=membership,
+            status=Contribution.Status.COMPLETED,
+        ).exists():
+            return Response(
+                {"detail": "Contribution already paid for this cycle."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        order_reference = f"vp-{uuid.uuid4().hex[:16]}"
+        provider = get_payment_provider()
+
+        try:
+            result = provider.create_checkout_order(
+                order_reference=order_reference,
+                customer_email=request.user.email,
+                amount=group.contribution_amount,
+                customer_id=str(request.user.id),
+            )
+        except Exception:
+            logger.exception("Failed to create Nomba checkout order")
+            return Response(
+                {"detail": "Could not generate payment link. Try again later."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        # Store a pending contribution record so the webhook can match it
+        Contribution.objects.get_or_create(
+            cycle=cycle,
+            member=membership,
+            defaults={
+                "amount": group.contribution_amount,
+                "status": Contribution.Status.PENDING,
+                "payment_method": "checkout",
+                "nomba_reference": result.get("orderReference", order_reference),
+            },
+        )
+
+        return Response(
+            {
+                "checkout_url": result.get("checkoutLink"),
+                "amount": str(group.contribution_amount),
+                "cycle_number": cycle.cycle_number,
+                "order_reference": result.get("orderReference", order_reference),
+            },
+            status=status.HTTP_201_CREATED,
+        )

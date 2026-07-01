@@ -81,6 +81,8 @@ def _dispatch(event_type: str, data: dict) -> dict:
         "transfer.debit": _handle_outgoing_payment,
         "directdebit.charge.success": _handle_direct_debit_success,
         "directdebit.charge.failed": _handle_direct_debit_failure,
+        "checkout.payment.success": _handle_checkout_payment,
+        "checkout.charge.success": _handle_checkout_payment,
     }
     handler = HANDLERS.get(event_type)
     if handler is None:
@@ -238,6 +240,49 @@ def _handle_direct_debit_failure(data: dict) -> dict:
         logger.error("Direct debit failure for unknown mandate: %s", mandate_id)
 
     return {"status": "ok", "type": "direct_debit_failure_logged"}
+
+
+def _handle_checkout_payment(data: dict) -> dict:
+    """
+    A checkout order was paid successfully.
+    Match the orderReference to a pending Contribution and mark it complete.
+    """
+    from apps.payments.models import Contribution
+
+    order_reference = (
+        data.get("orderReference")
+        or data.get("order", {}).get("orderReference", "")
+    )
+    transaction_id = data.get("transactionId", "")
+    amount = data.get("amount", 0)
+
+    if not order_reference:
+        logger.warning("Checkout payment webhook missing orderReference: %s", data)
+        return {"status": "ignored", "reason": "no_order_reference"}
+
+    try:
+        contribution = Contribution.objects.select_related(
+            "cycle__group", "member__user"
+        ).get(
+            nomba_reference=order_reference,
+            status=Contribution.Status.PENDING,
+        )
+    except Contribution.DoesNotExist:
+        logger.warning("Checkout payment for unknown order reference: %s", order_reference)
+        return {"status": "ignored", "reason": "unknown_order_reference"}
+
+    contribution.status = Contribution.Status.COMPLETED
+    contribution.nomba_transaction_id = transaction_id
+    contribution.amount = amount or contribution.amount
+    contribution.save(update_fields=["status", "nomba_transaction_id", "amount", "updated_at"])
+
+    logger.info(
+        "Checkout contribution recorded: %s paid cycle #%d for group '%s'",
+        contribution.member.user.email,
+        contribution.cycle.cycle_number,
+        contribution.cycle.group.name,
+    )
+    return {"status": "ok", "type": "checkout_contribution"}
 
 
 # ── Member resolution ─────────────────────────────────────────────────────────

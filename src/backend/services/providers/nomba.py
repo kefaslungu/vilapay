@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import hmac
 from datetime import UTC, datetime
@@ -180,7 +181,26 @@ class NombaProvider(BasePaymentProvider):
         response.raise_for_status()
         return response.json()["data"]
 
-    def verify_webhook(self, payload, signature):
+    def verify_webhook(self, data: dict, signature: str) -> bool:
+        """
+        Verify a Nomba webhook signature.
+        Nomba signs: event_type:requestId:userId:walletId:transactionId:
+                     transactionType:transactionTime:responseCode:timestamp
+        Algorithm: HMAC-SHA256, Base64-encoded.
+        """
         secret = getattr(settings, "NOMBA_WEBHOOK_SECRET", "")
-        expected = hmac.new(secret.encode(), payload, hashlib.sha512).hexdigest()
+        fields = [
+            data.get("eventType") or data.get("event", ""),
+            data.get("requestId", ""),
+            data.get("userId", ""),
+            data.get("walletId", ""),
+            data.get("transactionId", ""),
+            data.get("transactionType", ""),
+            data.get("transactionTime", ""),
+            data.get("responseCode", ""),
+            data.get("timestamp", ""),
+        ]
+        payload_str = ":".join(str(f) for f in fields)
+        mac = hmac.new(secret.encode(), payload_str.encode(), hashlib.sha256)
+        expected = base64.b64encode(mac.digest()).decode()
         return hmac.compare_digest(expected, signature)

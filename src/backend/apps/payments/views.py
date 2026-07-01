@@ -37,7 +37,7 @@ class NombaWebhookView(APIView):
     def post(self, request):
         # Access raw body before DRF parsers can consume the stream
         payload = request.body
-        signature = request.META.get("HTTP_X_NOMBA_SIGNATURE", "")
+        signature = request.META.get("HTTP_NOMBA_SIGNATURE", "")
 
         try:
             result = handle_nomba_webhook(payload, signature)

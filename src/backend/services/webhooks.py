@@ -37,8 +37,8 @@ def handle_nomba_webhook(payload: bytes, signature: str) -> dict:
     Verify and dispatch a Nomba webhook.
 
     Args:
-        payload:   Raw request body bytes (used for HMAC verification).
-        signature: Value of the X-Nomba-Signature header.
+        payload:   Raw request body bytes.
+        signature: Value of the nomba-signature header.
 
     Returns:
         A dict with at least a 'status' key ('ok' | 'ignored' | 'error').
@@ -46,9 +46,9 @@ def handle_nomba_webhook(payload: bytes, signature: str) -> dict:
     Raises:
         WebhookVerificationError if the signature is invalid.
     """
-    _verify_signature(payload, signature)
-
     data = json.loads(payload)
+    _verify_signature(data, signature)
+
     event_type = data.get("event") or data.get("eventType", "unknown")
 
     start = time.monotonic()
@@ -63,11 +63,11 @@ def handle_nomba_webhook(payload: bytes, signature: str) -> dict:
 # ── Signature verification ────────────────────────────────────────────────────
 
 
-def _verify_signature(payload: bytes, signature: str) -> None:
+def _verify_signature(data: dict, signature: str) -> None:
     from services.providers import get_payment_provider
 
     provider = get_payment_provider()
-    if not provider.verify_webhook(payload, signature):
+    if not provider.verify_webhook(data, signature):
         raise WebhookVerificationError("Webhook signature verification failed.")
 
 

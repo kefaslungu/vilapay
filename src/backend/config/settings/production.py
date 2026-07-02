@@ -24,6 +24,15 @@ DATABASES = {
 CELERY_BROKER_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = config("REDIS_URL", default="redis://localhost:6379/0")
 
+# DB 2 keeps cache keys separate from Celery (DB 0) and Celery results (DB 1).
+# Shared across all Gunicorn workers so throttle counters are accurate.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": config("REDIS_CACHE_URL", default="redis://localhost:6379/2"),
+    }
+}
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [
     "https://vilapay.ng",

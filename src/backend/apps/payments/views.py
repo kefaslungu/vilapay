@@ -34,6 +34,7 @@ class NombaWebhookView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = []  # Nomba's servers must never be rate-limited
 
     def post(self, request):
         # Access raw body before DRF parsers can consume the stream

@@ -213,11 +213,17 @@ class JoinByCodeView(APIView):
                 user=request.user,
                 slot_number=serializer.validated_data.get("slot_number"),
             )
-        except (GroupFullError, SlotTakenError, InvalidGroupStateError, ValueError) as exc:
+        except (
+            GroupFullError,
+            SlotTakenError,
+            InvalidGroupStateError,
+            ValueError,
+        ) as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             from services.wallets import create_wallet
+
             create_wallet(membership)
         except Exception:
             logger.warning(

@@ -152,7 +152,9 @@ class NombaProvider(BasePaymentProvider):
         response.raise_for_status()
         return response.json()["data"]
 
-    def create_checkout_order(self, order_reference, customer_email, amount, customer_id=None):
+    def create_checkout_order(
+        self, order_reference, customer_email, amount, customer_id=None
+    ):
         response = requests.post(
             f"{self.base_url}/checkout/order",
             json={

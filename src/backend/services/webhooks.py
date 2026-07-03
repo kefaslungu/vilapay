@@ -249,9 +249,8 @@ def _handle_checkout_payment(data: dict) -> dict:
     """
     from apps.payments.models import Contribution
 
-    order_reference = (
-        data.get("orderReference")
-        or data.get("order", {}).get("orderReference", "")
+    order_reference = data.get("orderReference") or data.get("order", {}).get(
+        "orderReference", ""
     )
     transaction_id = data.get("transactionId", "")
     amount = data.get("amount", 0)
@@ -268,13 +267,17 @@ def _handle_checkout_payment(data: dict) -> dict:
             status=Contribution.Status.PENDING,
         )
     except Contribution.DoesNotExist:
-        logger.warning("Checkout payment for unknown order reference: %s", order_reference)
+        logger.warning(
+            "Checkout payment for unknown order reference: %s", order_reference
+        )
         return {"status": "ignored", "reason": "unknown_order_reference"}
 
     contribution.status = Contribution.Status.COMPLETED
     contribution.nomba_transaction_id = transaction_id
     contribution.amount = amount or contribution.amount
-    contribution.save(update_fields=["status", "nomba_transaction_id", "amount", "updated_at"])
+    contribution.save(
+        update_fields=["status", "nomba_transaction_id", "amount", "updated_at"]
+    )
 
     logger.info(
         "Checkout contribution recorded: %s paid cycle #%d for group '%s'",

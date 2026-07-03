@@ -39,6 +39,10 @@ export default function RegisterPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (!form.full_name.trim()) { setError('Full name is required.'); return }
+    if (!form.email.trim()) { setError('Email is required.'); return }
+    if (!form.phone_number.trim()) { setError('Phone number is required.'); return }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return }
     mutate()
   }
 

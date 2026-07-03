@@ -23,6 +23,8 @@ export default function LoginPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (!email.trim()) { setError('Email is required.'); return }
+    if (!password.trim()) { setError('Password is required.'); return }
     mutate()
   }
 

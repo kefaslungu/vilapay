@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import client from '@/api/client'
+import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
-
-interface LoginResponse {
-  access: string
-  user: { id: string; full_name: string; email: string; phone: string }
-}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,8 +12,7 @@ export default function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () =>
-      client.post<LoginResponse>('/auth/login/', { email, password }).then((r) => r.data),
+    mutationFn: () => authApi.login(email, password),
     onSuccess: (data) => {
       setAuth(data.access, data.user)
       navigate('/dashboard', { replace: true })

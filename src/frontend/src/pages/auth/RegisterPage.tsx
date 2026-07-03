@@ -2,19 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
-import client from '@/api/client'
+import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
-
-interface RegisterResponse {
-  access: string
-  user: { id: string; full_name: string; email: string; phone: string }
-}
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
     full_name: '',
     email: '',
-    phone: '',
+    phone_number: '',
     password: '',
   })
   const [error, setError] = useState('')
@@ -23,12 +18,12 @@ export default function RegisterPage() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
-      client
-        .post<RegisterResponse>('/auth/register/', {
-          ...form,
-          phone: `+234${form.phone}`,
-        })
-        .then((r) => r.data),
+      authApi.register({
+        full_name: form.full_name,
+        email: form.email,
+        phone_number: `+234${form.phone_number}`,
+        password: form.password,
+      }),
     onSuccess: (data) => {
       setAuth(data.access, data.user)
       navigate('/dashboard', { replace: true })
@@ -108,7 +103,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="phone" className="text-[13px] font-semibold text-[#3E4A42]">
+          <label htmlFor="phone_number" className="text-[13px] font-semibold text-[#3E4A42]">
             Phone number
           </label>
           <div className="flex gap-2">
@@ -116,12 +111,12 @@ export default function RegisterPage() {
               +234
             </span>
             <input
-              id="phone"
+              id="phone_number"
               type="tel"
               autoComplete="tel-national"
               placeholder="801 234 5678"
-              value={form.phone}
-              onChange={set('phone')}
+              value={form.phone_number}
+              onChange={set('phone_number')}
               required
               className="flex-1 min-w-0 px-4 py-[14px] border border-[#DDD6C8] rounded-xl bg-white text-base text-[#1F2A24] focus:outline-[2px] focus:outline-[#1B4332] focus:outline-offset-0"
             />

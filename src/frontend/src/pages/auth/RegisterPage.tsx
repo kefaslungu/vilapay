@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
+import { parseDrfError } from '@/lib/utils'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -29,10 +30,7 @@ export default function RegisterPage() {
       navigate('/dashboard', { replace: true })
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-        ?? 'Registration failed. Please try again.'
-      setError(msg)
+      setError(parseDrfError(err, 'Registration failed. Please try again.'))
     },
   })
 

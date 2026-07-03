@@ -67,6 +67,7 @@ class GroupSerializer(serializers.ModelSerializer):
             "current_cycle",
             "member_count",
             "virtual_account",
+            "invite_code",
             "created_at",
             "updated_at",
         ]
@@ -99,3 +100,11 @@ class JoinGroupSerializer(serializers.Serializer):
 
 class CancelGroupSerializer(serializers.Serializer):
     reason = serializers.CharField(required=False, allow_blank=True, max_length=500)
+
+
+class JoinByCodeSerializer(serializers.Serializer):
+    invite_code = serializers.CharField(max_length=9)
+    slot_number = serializers.IntegerField(required=False, min_value=1)
+
+    def validate_invite_code(self, value):
+        return value.strip().upper()

@@ -12,6 +12,7 @@ from apps.groups.serializers import (
     GroupCycleSerializer,
     GroupMembershipSerializer,
     GroupSerializer,
+    JoinByCodeSerializer,
     JoinGroupSerializer,
 )
 from services.exceptions import (
@@ -178,6 +179,54 @@ class CancelGroupView(APIView):
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(GroupSerializer(group).data)
+
+
+class JoinByCodeView(APIView):
+    """Join a group using its invite code instead of its UUID."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = JoinByCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        code = serializer.validated_data["invite_code"]
+        try:
+            group = Group.objects.get(invite_code=code)
+        except Group.DoesNotExist:
+            return Response(
+                {"detail": "Invalid invite code."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if group.memberships.filter(
+            user=request.user, status=GroupMembership.Status.ACTIVE
+        ).exists():
+            return Response(
+                {"detail": "You are already a member of this group."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            membership = join_group(
+                group=group,
+                user=request.user,
+                slot_number=serializer.validated_data.get("slot_number"),
+            )
+        except (GroupFullError, SlotTakenError, InvalidGroupStateError, ValueError) as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            from services.wallets import create_wallet
+            create_wallet(membership)
+        except Exception:
+            logger.warning(
+                "Wallet creation failed for membership %s — continuing", membership.id
+            )
+
+        return Response(
+            GroupMembershipSerializer(membership).data, status=status.HTTP_201_CREATED
+        )
 
 
 class GroupMembersView(APIView):

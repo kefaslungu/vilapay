@@ -1,7 +1,17 @@
+import secrets
+import string
 import uuid
 
 from django.conf import settings
 from django.db import models
+
+
+def _generate_invite_code():
+    """Generate a unique 9-character invite code: e.g. VLA-8K2QF9"""
+    alphabet = string.ascii_uppercase + string.digits
+    prefix = "".join(secrets.choice(string.ascii_uppercase) for _ in range(3))
+    suffix = "".join(secrets.choice(alphabet) for _ in range(5))
+    return f"{prefix}-{suffix}"
 
 
 class Group(models.Model):
@@ -44,6 +54,13 @@ class Group(models.Model):
     nomba_virtual_account_id = models.CharField(max_length=255, blank=True)
     nomba_virtual_account_number = models.CharField(max_length=20, blank=True)
     nomba_virtual_account_bank = models.CharField(max_length=100, blank=True)
+
+    invite_code = models.CharField(
+        max_length=9,
+        unique=True,
+        default=_generate_invite_code,
+        help_text="9-character invite code (e.g. VLA-8K2QF9) for joining via the app",
+    )
 
     current_cycle = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

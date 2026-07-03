@@ -7,11 +7,13 @@ from apps.groups.views import (
     GroupDetailView,
     GroupListCreateView,
     GroupMembersView,
+    JoinByCodeView,
     JoinGroupView,
 )
 
 urlpatterns = [
     path("", GroupListCreateView.as_view(), name="group-list-create"),
+    path("join-by-code/", JoinByCodeView.as_view(), name="group-join-by-code"),
     path("<uuid:pk>/", GroupDetailView.as_view(), name="group-detail"),
     path("<uuid:pk>/join/", JoinGroupView.as_view(), name="group-join"),
     path("<uuid:pk>/activate/", ActivateGroupView.as_view(), name="group-activate"),

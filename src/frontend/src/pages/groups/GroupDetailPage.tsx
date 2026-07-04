@@ -11,7 +11,8 @@ interface MemberDetail {
   id: string
   slot_number: number
   status: string
-  user: { id: string; full_name: string }
+  user_name: string
+  user_email: string
 }
 
 interface GroupDetail {
@@ -45,7 +46,7 @@ export default function GroupDetailPage() {
   const { data: members = [] } = useQuery<MemberDetail[]>({
     queryKey: ['group-members', id],
     queryFn: () =>
-      client.get<MemberDetail[]>(`/groups/${id}/memberships/`).then((r) => r.data),
+      client.get<MemberDetail[]>(`/groups/${id}/members/`).then((r) => r.data),
     enabled: !!id,
   })
 
@@ -195,10 +196,10 @@ export default function GroupDetailPage() {
                     style={{ background: palette.bg, color: palette.color }}
                     aria-hidden="true"
                   >
-                    {initials(m.user.full_name)}
+                    {initials(m.user_name)}
                   </div>
                   <span className="flex-1 text-sm font-semibold text-[#1F2A24] min-w-0 truncate">
-                    {m.user.full_name}
+                    {m.user_name}
                   </span>
                   <span className="text-[12px] font-bold px-2.5 py-1 rounded-full text-[#1B4332] bg-[#DCE9E1] flex-none">
                     Slot {m.slot_number}
@@ -235,7 +236,7 @@ export default function GroupDetailPage() {
                       className="flex-1 text-sm text-[#1F2A24] min-w-0 truncate"
                       style={{ fontWeight: active ? 700 : 500 }}
                     >
-                      {c.recipient.user.full_name}
+                      {c.recipient_name}
                     </span>
                     <span className="text-[13px] text-[#6B7268] flex-none">
                       {new Date(c.payout_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}

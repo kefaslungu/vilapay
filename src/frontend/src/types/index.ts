@@ -27,9 +27,13 @@ export interface GroupMembership {
 export interface GroupCycle {
   id: string
   cycle_number: number
-  status: 'pending' | 'active' | 'completed'
+  recipient_slot: number
+  recipient_name: string
+  start_date: string
+  end_date: string
   payout_date: string
-  recipient: { id: string; user: { full_name: string }; slot_number: number }
+  status: 'pending' | 'active' | 'completed'
+  total_collected: string
 }
 
 export interface Transaction {

@@ -5,14 +5,32 @@ from rest_framework import serializers
 from apps.groups.models import Group, GroupCycle, GroupMembership
 
 
+class GroupSummarySerializer(serializers.ModelSerializer):
+    """Minimal group data embedded inside membership responses."""
+
+    class Meta:
+        model = Group
+        fields = [
+            "id",
+            "name",
+            "contribution_amount",
+            "frequency",
+            "slot_count",
+            "status",
+            "invite_code",
+        ]
+
+
 class GroupMembershipSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source="user.email", read_only=True)
     user_name = serializers.CharField(source="user.full_name", read_only=True)
+    group = GroupSummarySerializer(read_only=True)
 
     class Meta:
         model = GroupMembership
         fields = [
             "id",
+            "group",
             "user_email",
             "user_name",
             "slot_number",

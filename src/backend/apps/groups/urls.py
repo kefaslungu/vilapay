@@ -9,10 +9,12 @@ from apps.groups.views import (
     GroupMembersView,
     JoinByCodeView,
     JoinGroupView,
+    MyMembershipsView,
 )
 
 urlpatterns = [
     path("", GroupListCreateView.as_view(), name="group-list-create"),
+    path("memberships/", MyMembershipsView.as_view(), name="my-memberships"),
     path("join-by-code/", JoinByCodeView.as_view(), name="group-join-by-code"),
     path("<uuid:pk>/", GroupDetailView.as_view(), name="group-detail"),
     path("<uuid:pk>/join/", JoinGroupView.as_view(), name="group-join"),

@@ -235,6 +235,22 @@ class JoinByCodeView(APIView):
         )
 
 
+class MyMembershipsView(APIView):
+    """Return the authenticated user's active group memberships."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        memberships = (
+            GroupMembership.objects.filter(
+                user=request.user, status=GroupMembership.Status.ACTIVE
+            )
+            .select_related("group")
+            .order_by("joined_at")
+        )
+        return Response(GroupMembershipSerializer(memberships, many=True).data)
+
+
 class GroupMembersView(APIView):
     permission_classes = [IsAuthenticated]
 

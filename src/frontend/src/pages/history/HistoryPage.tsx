@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { walletApi } from '@/api/wallet'
 import { naira } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Transaction } from '@/types'
 
 type Filter = 'All' | 'Contributions' | 'Payouts'
 const filters: Filter[] = ['All', 'Contributions', 'Payouts']
 
 export default function HistoryPage() {
+  usePageTitle('History')
   const [filter, setFilter] = useState<Filter>('All')
 
   const { data: transactions = [], isLoading } = useQuery({

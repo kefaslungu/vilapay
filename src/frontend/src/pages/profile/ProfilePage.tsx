@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Edit2, Lock, HelpCircle, MessageCircle, LogOut, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { initials } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface Row {
   icon: React.ReactNode
@@ -11,6 +12,7 @@ interface Row {
 }
 
 export default function ProfilePage() {
+  usePageTitle('Profile')
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()

@@ -4,10 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 import { groupsApi } from '@/api/groups'
 import { naira } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type Tab = 'create' | 'join'
 
 export default function JoinOrCreatePage() {
+  usePageTitle('New group')
   const [tab, setTab] = useState<Tab>('create')
   const navigate = useNavigate()
   const qc = useQueryClient()

@@ -5,8 +5,10 @@ import { ChevronLeft } from 'lucide-react'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { parseDrfError } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function RegisterPage() {
+  usePageTitle('Create account')
   const [form, setForm] = useState({
     full_name: '',
     email: '',

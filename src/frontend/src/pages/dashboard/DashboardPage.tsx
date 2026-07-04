@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth'
 import { walletApi } from '@/api/wallet'
 import { groupsApi } from '@/api/groups'
 import { naira, initials } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function greeting() {
   const h = new Date().getHours()
@@ -14,6 +15,7 @@ function greeting() {
 }
 
 export default function DashboardPage() {
+  usePageTitle('Home')
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
 

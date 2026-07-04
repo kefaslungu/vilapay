@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 const slides = [
   {
@@ -17,6 +18,7 @@ const slides = [
 ]
 
 export default function OnboardingPage() {
+  usePageTitle('')
   const [step, setStep] = useState(0)
   const navigate = useNavigate()
 

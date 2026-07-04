@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 import client from '@/api/client'
 import { naira, initials } from '@/lib/utils'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import type { GroupCycle } from '@/types'
 
 interface MemberDetail {
@@ -54,6 +55,8 @@ export default function GroupDetailPage() {
       client.get<GroupCycle[]>(`/groups/${id}/cycles/`).then((r) => r.data),
     enabled: !!id,
   })
+
+  usePageTitle(group?.name ?? '')
 
   function copyVA() {
     const acct = group?.virtual_account?.account_number ?? ''

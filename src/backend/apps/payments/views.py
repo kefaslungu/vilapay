@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+from django.conf import settings
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -266,6 +267,7 @@ class ContributionCheckoutView(APIView):
 
         order_reference = f"vp-{uuid.uuid4().hex[:16]}"
         provider = get_payment_provider()
+        redirect_url = f"{settings.VILAPAY_FRONTEND_BASE_URL}/groups/{group.id}"
 
         try:
             result = provider.create_checkout_order(
@@ -273,6 +275,7 @@ class ContributionCheckoutView(APIView):
                 customer_email=request.user.email,
                 amount=group.contribution_amount,
                 customer_id=str(request.user.id),
+                redirect_url=redirect_url,
             )
         except Exception:
             logger.exception("Failed to create Nomba checkout order")

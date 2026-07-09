@@ -153,21 +153,23 @@ class NombaProvider(BasePaymentProvider):
         return response.json()["data"]
 
     def create_checkout_order(
-        self, order_reference, customer_email, amount, customer_id=None
+        self, order_reference, customer_email, amount, customer_id=None, redirect_url=None
     ):
+        order_payload = {
+            "orderReference": order_reference,
+            "customerId": customer_id or customer_email,
+            "customerEmail": customer_email,
+            "amount": str(amount),
+            "currency": "NGN",
+            "accountId": self.account_id,
+            "callbackUrl": f"{settings.VILAPAY_API_BASE_URL}/v1/payments/webhooks/nomba/",
+        }
+        if redirect_url:
+            order_payload["redirectUrl"] = redirect_url
+
         response = requests.post(
             f"{self.base_url}/checkout/order",
-            json={
-                "order": {
-                    "orderReference": order_reference,
-                    "customerId": customer_id or customer_email,
-                    "customerEmail": customer_email,
-                    "amount": str(amount),
-                    "currency": "NGN",
-                    "accountId": self.account_id,
-                    "callbackUrl": f"{settings.VILAPAY_API_BASE_URL}/v1/payments/webhooks/nomba/",
-                }
-            },
+            json={"order": order_payload},
             headers=self._headers(),
             timeout=_DEFAULT_TIMEOUT,
         )

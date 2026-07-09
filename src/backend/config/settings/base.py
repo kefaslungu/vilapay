@@ -135,6 +135,10 @@ PAYMENT_PROVIDER = "nomba"
 # Override in environment-specific settings.
 VILAPAY_API_BASE_URL = "https://api.vilapay.ng"
 
+# Public base URL of the frontend app — used for Nomba checkout redirect URLs.
+# Override in environment-specific settings.
+VILAPAY_FRONTEND_BASE_URL = "https://vilapay.ng"
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 # Shared formatters and logger hierarchy.
 # Handlers are defined per-environment (development.py / production.py).

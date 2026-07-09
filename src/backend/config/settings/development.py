@@ -38,6 +38,7 @@ NOMBA_SANDBOX = True
 
 # Use ngrok (or similar) URL here when testing Nomba sandbox callbacks locally
 VILAPAY_API_BASE_URL = "http://localhost:8000"
+VILAPAY_FRONTEND_BASE_URL = "http://localhost:5173"
 
 # Email — console backend in dev
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import { Eye, EyeOff } from 'lucide-react'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -9,6 +10,7 @@ export default function LoginPage() {
   usePageTitle('Sign in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -68,16 +70,26 @@ export default function LoginPage() {
           <label htmlFor="password" className="text-[13px] font-semibold text-[#3E4A42]">
             Password
           </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-[14px] border border-[#DDD6C8] rounded-xl bg-white text-base text-[#1F2A24] focus:outline-[2px] focus:outline-[#1B4332] focus:outline-offset-0"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-[14px] pr-12 border border-[#DDD6C8] rounded-xl bg-white text-base text-[#1F2A24] focus:outline-[2px] focus:outline-[#1B4332] focus:outline-offset-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7268] bg-transparent border-none cursor-pointer p-1"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <Link

@@ -24,10 +24,12 @@ class WalletSummaryView(APIView):
     def get(self, request):
         wallets = request.user.save_ahead_wallets.all()
         total = sum((w.balance for w in wallets), Decimal("0.00"))
-        return Response({
-            "balance": str(total),
-            "wallet_count": wallets.count(),
-        })
+        return Response(
+            {
+                "balance": str(total),
+                "wallet_count": wallets.count(),
+            }
+        )
 
 
 class WalletListView(APIView):
@@ -99,24 +101,28 @@ class TransactionListView(APIView):
         transactions = []
 
         for c in contributions:
-            transactions.append({
-                "id": str(c.id),
-                "amount": str(c.amount),
-                "transaction_type": "contribution",
-                "status": status_map.get(c.status, "pending"),
-                "group_name": c.cycle.group.name,
-                "created_at": c.created_at.isoformat(),
-            })
+            transactions.append(
+                {
+                    "id": str(c.id),
+                    "amount": str(c.amount),
+                    "transaction_type": "contribution",
+                    "status": status_map.get(c.status, "pending"),
+                    "group_name": c.cycle.group.name,
+                    "created_at": c.created_at.isoformat(),
+                }
+            )
 
         for p in payouts:
-            transactions.append({
-                "id": str(p.id),
-                "amount": str(p.amount),
-                "transaction_type": "payout",
-                "status": status_map.get(p.status, "pending"),
-                "group_name": p.cycle.group.name,
-                "created_at": p.created_at.isoformat(),
-            })
+            transactions.append(
+                {
+                    "id": str(p.id),
+                    "amount": str(p.amount),
+                    "transaction_type": "payout",
+                    "status": status_map.get(p.status, "pending"),
+                    "group_name": p.cycle.group.name,
+                    "created_at": p.created_at.isoformat(),
+                }
+            )
 
         transactions.sort(key=lambda x: x["created_at"], reverse=True)
 

@@ -153,7 +153,12 @@ class NombaProvider(BasePaymentProvider):
         return response.json()["data"]
 
     def create_checkout_order(
-        self, order_reference, customer_email, amount, customer_id=None, redirect_url=None
+        self,
+        order_reference,
+        customer_email,
+        amount,
+        customer_id=None,
+        redirect_url=None,
     ):
         order_payload = {
             "orderReference": order_reference,

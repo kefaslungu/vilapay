@@ -89,3 +89,4 @@ celerybeat.pid
 # ── Uploads & generated files ──────────────────────────────────────────────────
 uploads/
 *.sqlite3
+.claude/

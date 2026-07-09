@@ -111,6 +111,7 @@ VilaPay replaces the manual process with an automated platform. Members authoriz
 | GET | `/v1/groups/{id}/cycles/` | View payout cycle schedule |
 | GET | `/v1/groups/memberships/` | Get all groups the current user belongs to |
 | GET | `/v1/wallets/` | List save-ahead wallets |
+| GET | `/v1/wallets/transactions/` | Unified contribution + payout history |
 | GET | `/v1/wallets/{id}/ledger/` | Wallet transaction history |
 | GET/POST | `/v1/payments/mandates/` | Manage direct debit mandates |
 | GET | `/v1/payments/contributions/` | Contribution history |

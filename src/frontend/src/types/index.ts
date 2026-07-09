@@ -22,6 +22,7 @@ export interface GroupMembership {
   slot_number: number
   status: 'active' | 'inactive'
   joined_at: string
+  next_payout_date: string | null
 }
 
 export interface GroupCycle {

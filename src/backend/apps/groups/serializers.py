@@ -25,6 +25,7 @@ class GroupMembershipSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source="user.email", read_only=True)
     user_name = serializers.CharField(source="user.full_name", read_only=True)
     group = GroupSummarySerializer(read_only=True)
+    next_payout_date = serializers.SerializerMethodField()
 
     class Meta:
         model = GroupMembership
@@ -36,7 +37,19 @@ class GroupMembershipSerializer(serializers.ModelSerializer):
             "slot_number",
             "status",
             "joined_at",
+            "next_payout_date",
         ]
+
+    def get_next_payout_date(self, obj):
+        cycle = (
+            GroupCycle.objects.filter(
+                group=obj.group,
+                status__in=[GroupCycle.Status.PENDING, GroupCycle.Status.COLLECTING],
+            )
+            .order_by("payout_date")
+            .first()
+        )
+        return str(cycle.payout_date) if cycle else None
 
 
 class GroupCycleSerializer(serializers.ModelSerializer):

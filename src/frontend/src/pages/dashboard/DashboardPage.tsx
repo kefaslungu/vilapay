@@ -32,6 +32,15 @@ export default function DashboardPage() {
   const firstName = user?.full_name.split(' ')[0] ?? ''
   const userInitials = initials(user?.full_name ?? '')
 
+  const nextPayout = memberships
+    .map((m) => m.next_payout_date)
+    .filter((d): d is string => !!d)
+    .sort()[0]
+
+  const nextPayoutLabel = nextPayout
+    ? new Date(nextPayout).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : '—'
+
   return (
     <div className="flex flex-col flex-1">
       {/* Green header */}
@@ -70,8 +79,8 @@ export default function DashboardPage() {
         <div className="flex-1 bg-white border border-[#E8E2D6] rounded-2xl p-4 flex flex-col gap-1 shadow-[0_4px_14px_rgba(27,67,50,0.07)]">
           <span className="text-[12px] font-semibold text-[#6B7268]">Next payout</span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-extrabold text-[#1B4332]">—</span>
-            <span className="w-2 h-2 bg-[#D4A853] rounded-full" />
+            <span className="text-2xl font-extrabold text-[#1B4332]">{nextPayoutLabel}</span>
+            {nextPayout && <span className="w-2 h-2 bg-[#D4A853] rounded-full" />}
           </div>
         </div>
       </div>
@@ -108,39 +117,58 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : (
-          memberships.map(({ group }) => (
-            <button
-              key={group.id}
-              onClick={() => navigate(`/groups/${group.id}`)}
-              className="w-full text-left bg-white border border-[#E8E2D6] rounded-2xl p-4 flex flex-col gap-3 cursor-pointer hover:border-[#1B4332] hover:shadow-[0_4px_14px_rgba(27,67,50,0.08)] transition-all"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[15px] font-bold text-[#1F2A24] truncate">
-                    {group.name}
-                  </span>
-                  <span className="text-[13px] text-[#6B7268]">
-                    {naira(parseFloat(group.contribution_amount))} ·{' '}
-                    {group.frequency.charAt(0).toUpperCase() + group.frequency.slice(1)} ·{' '}
-                    {group.slot_count} members
-                  </span>
-                </div>
-                <ChevronRight size={18} color="#A8A296" className="flex-none" aria-hidden="true" />
-              </div>
+          memberships.map(({ group, next_payout_date }) => {
+            const statusLabel: Record<string, string> = {
+              pending: 'Pending',
+              active: 'Active',
+              completed: 'Completed',
+              cancelled: 'Cancelled',
+            }
+            const statusColors: Record<string, { text: string; bg: string }> = {
+              pending:   { text: '#6B7268', bg: '#EFEBE2' },
+              active:    { text: '#8A6A1F', bg: '#F3E5C3' },
+              completed: { text: '#1B4332', bg: '#DCE9E1' },
+              cancelled: { text: '#B4472F', bg: '#FAEAE6' },
+            }
+            const sc = statusColors[group.status] ?? statusColors.active
+            const payoutLabel = next_payout_date
+              ? new Date(next_payout_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+              : null
 
-              <div className="flex flex-col gap-1.5">
-                <div className="h-1.5 bg-[#EFEBE2] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#1B4332] rounded-full w-1/2" />
+            return (
+              <button
+                key={group.id}
+                onClick={() => navigate(`/groups/${group.id}`)}
+                className="w-full text-left bg-white border border-[#E8E2D6] rounded-2xl p-4 flex flex-col gap-3 cursor-pointer hover:border-[#1B4332] hover:shadow-[0_4px_14px_rgba(27,67,50,0.08)] transition-all"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-[15px] font-bold text-[#1F2A24] truncate">
+                      {group.name}
+                    </span>
+                    <span className="text-[13px] text-[#6B7268]">
+                      {naira(parseFloat(group.contribution_amount))} ·{' '}
+                      {group.frequency.charAt(0).toUpperCase() + group.frequency.slice(1)} ·{' '}
+                      {group.slot_count} members
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="#A8A296" className="flex-none" aria-hidden="true" />
                 </div>
+
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] text-[#6B7268]">{group.status}</span>
-                  <span className="text-[12px] font-semibold text-[#8A6A1F] bg-[#F3E5C3] px-2 py-0.5 rounded-full">
-                    Active
+                  <span className="text-[12px] text-[#6B7268]">
+                    {payoutLabel ? `Next payout: ${payoutLabel}` : 'No upcoming payout'}
+                  </span>
+                  <span
+                    className="text-[12px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{ color: sc.text, background: sc.bg }}
+                  >
+                    {statusLabel[group.status] ?? group.status}
                   </span>
                 </div>
-              </div>
-            </button>
-          ))
+              </button>
+            )
+          })
         )}
       </section>
     </div>

@@ -5,7 +5,9 @@ from apps.users.views import (
     BankAccountDetailView,
     BankAccountListCreateView,
     BanksListView,
+    ForgotPasswordView,
     RegisterView,
+    ResetPasswordView,
     UserProfileView,
 )
 
@@ -25,4 +27,14 @@ urlpatterns = [
         name="bank-account-detail",
     ),
     path("banks/", BanksListView.as_view(), name="banks-list"),
+    path(
+        "password-reset/request/",
+        ForgotPasswordView.as_view(),
+        name="password-reset-request",
+    ),
+    path(
+        "password-reset/confirm/",
+        ResetPasswordView.as_view(),
+        name="password-reset-confirm",
+    ),
 ]

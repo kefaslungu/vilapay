@@ -1,12 +1,14 @@
 import logging
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.models import UserBankAccount
+from apps.users.models import PasswordResetToken, User, UserBankAccount
 from apps.users.serializers import (
     AddBankAccountSerializer,
     RegisterSerializer,
@@ -113,6 +115,89 @@ class BankAccountDetailView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         account.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        # Always return 200 — never reveal whether the email exists
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "If that email is registered, a reset link has been sent."}
+            )
+
+        token = PasswordResetToken.objects.create(user=user)
+        reset_link = (
+            f"{settings.VILAPAY_FRONTEND_BASE_URL}/reset-password?token={token.token}"
+        )
+
+        send_mail(
+            subject="Reset your Vilapay password",
+            message=(
+                f"Hi {user.full_name},\n\n"
+                "We received a request to reset your Vilapay password.\n\n"
+                f"Click the link below to set a new password (valid for 24 hours):\n{reset_link}\n\n"
+                "If you didn't request this, you can ignore this email — your password won't change.\n\n"
+                "— The Vilapay team"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        logger.info("Password reset email sent to %s", user.email)
+        return Response(
+            {"detail": "If that email is registered, a reset link has been sent."}
+        )
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        raw_token = request.data.get("token", "").strip()
+        new_password = request.data.get("password", "").strip()
+
+        if not raw_token or not new_password:
+            return Response(
+                {"detail": "token and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 8:
+            return Response(
+                {"detail": "Password must be at least 8 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            reset_token = PasswordResetToken.objects.select_related("user").get(
+                token=raw_token
+            )
+        except (PasswordResetToken.DoesNotExist, ValueError):
+            return Response(
+                {"detail": "Invalid or expired reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not reset_token.is_valid():
+            return Response(
+                {"detail": "This reset link has expired or already been used."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        reset_token.used = True
+        reset_token.save(update_fields=["used"])
+
+        logger.info("Password reset successfully for %s", user.email)
+        return Response({"detail": "Password updated successfully."})
 
 
 class BanksListView(APIView):

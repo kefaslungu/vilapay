@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -6,6 +7,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -70,3 +72,22 @@ class UserBankAccount(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.account_number}"
+
+
+class PasswordResetToken(models.Model):
+    TOKEN_EXPIRY_HOURS = 24
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="password_reset_tokens"
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        expiry = self.created_at + timedelta(hours=self.TOKEN_EXPIRY_HOURS)
+        return not self.used and timezone.now() < expiry
+
+    def __str__(self):
+        return f"PasswordResetToken({self.user.email}, used={self.used})"

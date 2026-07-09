@@ -31,4 +31,10 @@ export const authApi = {
     // Registration returns no token — log in immediately after
     return authApi.login(payload.email, payload.password)
   },
+
+  forgotPassword: (email: string) =>
+    client.post('/auth/password-reset/request/', { email }).then((r) => r.data),
+
+  resetPassword: (token: string, password: string) =>
+    client.post('/auth/password-reset/confirm/', { token, password }).then((r) => r.data),
 }

@@ -80,12 +80,12 @@ export default function LoginPage() {
           />
         </div>
 
-        <button
-          type="button"
-          className="self-end text-[13px] font-semibold text-[#1B4332] bg-transparent border-none cursor-pointer"
+        <Link
+          to="/forgot-password"
+          className="self-end text-[13px] font-semibold text-[#1B4332] no-underline"
         >
           Forgot password?
-        </button>
+        </Link>
 
         {error && (
           <p role="alert" className="text-sm text-[#B4472F] m-0">

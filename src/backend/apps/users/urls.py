@@ -12,7 +12,6 @@ from apps.users.views import (
     UserProfileView,
 )
 
-
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="auth-register"),
     path("login/", TokenObtainPairView.as_view(), name="auth-login"),

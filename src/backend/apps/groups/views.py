@@ -58,9 +58,9 @@ class GroupListCreateView(APIView):
             membership = group.memberships.get(user=request.user)
             create_wallet(membership)
         except WalletLimitExceededError as exc:
-            # Group was created; warn the creator their wallet wasn't provisioned
+            # Group was created; surface the limit warning alongside the group data
             return Response(
-                {"detail": str(exc), "group": GroupSerializer(group).data},
+                {**GroupSerializer(group).data, "wallet_warning": str(exc)},
                 status=status.HTTP_201_CREATED,
             )
         except Exception:
@@ -124,8 +124,8 @@ class JoinGroupView(APIView):
         except WalletLimitExceededError as exc:
             return Response(
                 {
-                    "detail": str(exc),
-                    "membership": GroupMembershipSerializer(membership).data,
+                    **GroupMembershipSerializer(membership).data,
+                    "wallet_warning": str(exc),
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -243,8 +243,8 @@ class JoinByCodeView(APIView):
         except WalletLimitExceededError as exc:
             return Response(
                 {
-                    "detail": str(exc),
-                    "membership": GroupMembershipSerializer(membership).data,
+                    **GroupMembershipSerializer(membership).data,
+                    "wallet_warning": str(exc),
                 },
                 status=status.HTTP_201_CREATED,
             )

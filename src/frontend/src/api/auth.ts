@@ -37,4 +37,9 @@ export const authApi = {
 
   resetPassword: (token: string, password: string) =>
     client.post('/auth/password-reset/confirm/', { token, password }).then((r) => r.data),
+
+  changePassword: (current_password: string, new_password: string) =>
+    client
+      .post('/auth/password/change/', { current_password, new_password })
+      .then((r) => r.data),
 }

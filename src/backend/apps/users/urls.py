@@ -5,11 +5,13 @@ from apps.users.views import (
     BankAccountDetailView,
     BankAccountListCreateView,
     BanksListView,
+    ChangePasswordView,
     ForgotPasswordView,
     RegisterView,
     ResetPasswordView,
     UserProfileView,
 )
+
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="auth-register"),
@@ -37,4 +39,5 @@ urlpatterns = [
         ResetPasswordView.as_view(),
         name="password-reset-confirm",
     ),
+    path("password/change/", ChangePasswordView.as_view(), name="password-change"),
 ]

@@ -117,6 +117,37 @@ class BankAccountDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        current_password = request.data.get("current_password", "").strip()
+        new_password = request.data.get("new_password", "").strip()
+
+        if not current_password or not new_password:
+            return Response(
+                {"detail": "current_password and new_password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not request.user.check_password(current_password):
+            return Response(
+                {"detail": "Current password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 8:
+            return Response(
+                {"detail": "New password must be at least 8 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        request.user.set_password(new_password)
+        request.user.save(update_fields=["password"])
+        logger.info("Password changed for %s", request.user.email)
+        return Response({"detail": "Password updated successfully."})
+
+
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
 

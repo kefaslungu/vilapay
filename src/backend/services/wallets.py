@@ -17,12 +17,20 @@ from django.db import transaction
 from django.db.models import F
 
 from apps.wallets.models import SaveAheadWallet
+from services.exceptions import WalletLimitExceededError
 from services.ledger import record_entry
 
 logger = logging.getLogger(__name__)
 
 
 # ── Wallet creation ───────────────────────────────────────────────────────────
+
+
+_TIER_WALLET_LIMITS = {
+    "free": 1,
+    "individual_pro": 5,
+    "collector_pro": None,  # unlimited
+}
 
 
 def create_wallet(membership) -> SaveAheadWallet:
@@ -32,7 +40,20 @@ def create_wallet(membership) -> SaveAheadWallet:
 
     VA provisioning failure is non-fatal: the wallet is still created and
     the member can pay directly to the group VA instead.
+
+    Raises WalletLimitExceededError if the user has reached their tier limit.
     """
+    user = membership.user
+    limit = _TIER_WALLET_LIMITS.get(user.tier)
+    if limit is not None:
+        current_count = user.save_ahead_wallets.count()
+        if current_count >= limit:
+            raise WalletLimitExceededError(
+                f"Your {user.get_tier_display()} plan allows up to {limit} "
+                f"Save-Ahead wallet{'s' if limit != 1 else ''}. "
+                "Upgrade your plan to join more groups."
+            )
+
     wallet = SaveAheadWallet.objects.create(
         user=membership.user,
         membership=membership,

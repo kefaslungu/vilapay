@@ -20,6 +20,7 @@ from services.exceptions import (
     InvalidGroupStateError,
     PaymentProviderError,
     SlotTakenError,
+    WalletLimitExceededError,
 )
 from services.groups import activate_group, cancel_group, create_group, join_group
 
@@ -50,12 +51,18 @@ class GroupListCreateView(APIView):
             frequency=d["frequency"],
             start_date=d["start_date"],
         )
-        # Auto-create a save-ahead wallet for the creator (slot #1) — non-fatal
+        # Auto-create a save-ahead wallet for the creator (slot #1)
         try:
             from services.wallets import create_wallet
 
             membership = group.memberships.get(user=request.user)
             create_wallet(membership)
+        except WalletLimitExceededError as exc:
+            # Group was created; warn the creator their wallet wasn't provisioned
+            return Response(
+                {"detail": str(exc), "group": GroupSerializer(group).data},
+                status=status.HTTP_201_CREATED,
+            )
         except Exception:
             logger.warning(
                 "Wallet creation failed for group creator %s", request.user.email
@@ -109,11 +116,19 @@ class JoinGroupView(APIView):
         ) as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Auto-create save-ahead wallet — non-fatal if it fails
+        # Auto-create save-ahead wallet
         try:
             from services.wallets import create_wallet
 
             create_wallet(membership)
+        except WalletLimitExceededError as exc:
+            return Response(
+                {
+                    "detail": str(exc),
+                    "membership": GroupMembershipSerializer(membership).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception:
             logger.warning(
                 "Wallet creation failed for membership %s — continuing", membership.id
@@ -225,6 +240,14 @@ class JoinByCodeView(APIView):
             from services.wallets import create_wallet
 
             create_wallet(membership)
+        except WalletLimitExceededError as exc:
+            return Response(
+                {
+                    "detail": str(exc),
+                    "membership": GroupMembershipSerializer(membership).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception:
             logger.warning(
                 "Wallet creation failed for membership %s — continuing", membership.id

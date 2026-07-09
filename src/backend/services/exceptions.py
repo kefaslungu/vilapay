@@ -37,3 +37,7 @@ class PaymentProviderError(VilapayError):
 
 class WebhookVerificationError(VilapayError):
     """The incoming webhook signature did not pass verification."""
+
+
+class WalletLimitExceededError(VilapayError):
+    """The user has reached the maximum number of Save-Ahead wallets for their tier."""

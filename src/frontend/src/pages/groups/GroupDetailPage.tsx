@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react'
 import client from '@/api/client'
 import { naira, initials } from '@/lib/utils'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuthStore } from '@/store/auth'
 import type { GroupCycle } from '@/types'
 
 interface MemberDetail {
@@ -35,7 +36,11 @@ const avatarPalette = [
 export default function GroupDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
+  const [payLoading, setPayLoading] = useState(false)
+  const [payError, setPayError] = useState<string | null>(null)
 
   const { data: group } = useQuery<GroupDetail>({
     queryKey: ['group', id],
@@ -61,9 +66,39 @@ export default function GroupDetailPage() {
 
   function copyVA() {
     const acct = group?.virtual_account?.account_number ?? ''
-    navigator.clipboard.writeText(acct).catch(() => {})
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(acct).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => {
+      setCopyFailed(true)
+      setTimeout(() => setCopyFailed(false), 2000)
+    })
+  }
+
+  async function handlePay() {
+    const myMembership = members.find((m) => m.user_email === user?.email)
+    if (!myMembership) {
+      setPayError('Could not find your membership for this group.')
+      return
+    }
+    setPayLoading(true)
+    setPayError(null)
+    try {
+      const res = await client.post<{ checkout_url: string }>('/payments/contributions/checkout/', {
+        membership_id: myMembership.id,
+      })
+      const url = res.data.checkout_url
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      } else {
+        setPayError('No payment link returned. Please try again.')
+      }
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setPayError(detail ?? 'Could not open payment. Please try again.')
+    } finally {
+      setPayLoading(false)
+    }
   }
 
   const currentCycle = cycles.find((c) => c.status === 'active') ?? cycles[0]
@@ -126,11 +161,11 @@ export default function GroupDetailPage() {
               onClick={copyVA}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-[13px] font-bold border-none cursor-pointer flex-none transition-colors"
               style={{
-                background: copied ? '#DCE9E1' : '#1B4332',
-                color: copied ? '#1B4332' : '#F8F5F0',
+                background: copyFailed ? '#F3E5C3' : copied ? '#DCE9E1' : '#1B4332',
+                color: copyFailed ? '#5C4813' : copied ? '#1B4332' : '#F8F5F0',
               }}
             >
-              {copied ? 'Copied ✓' : 'Copy'}
+              {copyFailed ? 'Failed' : copied ? 'Copied ✓' : 'Copy'}
             </button>
           </div>
           <div className="bg-[#F3E5C3] rounded-[10px] px-3 py-2.5 text-[13px] text-[#5C4813] leading-relaxed">
@@ -143,17 +178,18 @@ export default function GroupDetailPage() {
         {/* Pay now button */}
         <div className="flex flex-col items-center gap-3">
           <button
-            onClick={() => alert('Opening secure payment…')}
-            className="w-full py-4 bg-[#1B4332] text-[#F8F5F0] rounded-xl text-base font-bold border-none cursor-pointer hover:bg-[#173A2B] transition-colors"
+            onClick={handlePay}
+            disabled={payLoading}
+            className="w-full py-4 bg-[#1B4332] text-[#F8F5F0] rounded-xl text-base font-bold border-none cursor-pointer hover:bg-[#173A2B] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Pay {amount} now
+            {payLoading ? 'Opening payment…' : `Pay ${amount} now`}
           </button>
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-[13px] font-semibold text-[#6B7268] bg-transparent border-none cursor-pointer underline underline-offset-2"
-          >
+          {payError && (
+            <p className="text-[13px] text-[#B4472F] text-center m-0">{payError}</p>
+          )}
+          <p className="text-[13px] font-semibold text-[#6B7268] m-0">
             Or transfer manually to the account above
-          </button>
+          </p>
         </div>
 
         {/* Cycle progress */}

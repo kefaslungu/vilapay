@@ -1,38 +1,102 @@
-# Vilapay
+# VilaPay
 
-> Community rotating savings platform built on Nomba payment infrastructure.
-> Your village, your money, your turn.
+> **Your village, your money, your turn.**
 
-Vilapay digitizes the traditional Nigerian ajo/esusu: members join a rotating savings group, authorize a one-time direct debit mandate, and contributions are collected and payouts sent automatically every cycle — no chasing, no defaults, no manual tracking.
+VilaPay digitizes the traditional Nigerian rotating savings system — ajo, esusu, adashi — and makes it trustless, automatic, and accessible to anyone with a smartphone.
 
-## Live API
+---
+
+## The Problem
+
+Rotating savings groups (ajo/esusu) are one of the most widely practised forms of informal finance in Nigeria, yet they remain entirely manual. Organizers chase payments, members default, records are kept in notebooks or WhatsApp chats, and payouts depend on trust. When someone doesn't pay, the whole group suffers — and there is no recourse.
+
+## The Solution
+
+VilaPay replaces the manual process with an automated platform. Members authorize a one-time direct debit mandate through Nomba, and from that point the platform handles everything: collecting contributions on schedule, verifying payments via webhook, and sending payouts directly to the recipient's bank account — automatically, every cycle. No chasing. No defaults. No manual tracking.
+
+---
+
+## Key Features
+
+- **Automated contribution collection** — Celery Beat triggers collection on each cycle date. Nomba executes the debit. No human intervention required.
+- **Instant payouts** — Once all contributions are collected for a cycle, the full pot is transferred directly to the recipient's verified bank account via Nomba.
+- **Group virtual accounts** — Each savings group gets a dedicated Nomba virtual account for transparent fund holding.
+- **Direct debit mandates** — Members authorize automatic collection once. The platform debits them every cycle without requiring repeat action.
+- **Save-ahead wallets** — Each member gets an isolated Nomba virtual account to pre-save funds before their contribution deadline, reducing the risk of missed collections.
+- **Invite codes** — Group organizers share a unique code (e.g. `VLA-8K2QF9`) for members to join. No friction.
+- **Immutable ledger** — Every deposit, withdrawal, payout, and refund is recorded as an audit entry. Full transparency for every group.
+- **Webhook verification** — All Nomba payment events are verified using HMAC-SHA256+Base64 signatures before being processed.
+- **Rate limiting** — Redis-backed rate limiting on all endpoints to prevent abuse.
+
+---
+
+## How It Works
+
+```
+1. Register & log in
+2. Create a group  →  set name, slot count, contribution amount, frequency, and start date
+3. Members join    →  via direct link or invite code
+4. Activate        →  provisions a Nomba virtual account and generates the full payout schedule
+5. Add bank account →  verified against Nomba in real time
+6. Set up mandate  →  one-time direct debit authorization via Nomba
+7. Sit back        →  contributions are collected automatically every cycle
+8. Get paid        →  when it's your turn, the full pot lands in your bank account
+```
+
+---
+
+## Live Demo
 
 | Resource | URL |
 |---|---|
+| Web App | https://vilapay.ng |
 | API Root | https://api.vilapay.ng/ |
-| Interactive Docs (Swagger) | https://api.vilapay.ng/v1/docs/ |
+| Interactive API Docs (Swagger) | https://api.vilapay.ng/v1/docs/ |
 | API Schema | https://api.vilapay.ng/v1/schema/ |
 
-The interactive docs at `/v1/docs/` allow you to explore and test every endpoint directly in the browser.
+---
 
-## Core Flow
+## Tech Stack
 
-1. **Register** — `POST /v1/auth/register/`
-2. **Login** — `POST /v1/auth/login/` → receive JWT access + refresh tokens
-3. **Create a group** — `POST /v1/groups/` with name, slot count, contribution amount, frequency, and start date
-4. **Members join** — `POST /v1/groups/{id}/join/`
-5. **Activate** — `POST /v1/groups/{id}/activate/` — provisions a Nomba virtual account for the group and generates the full payout cycle schedule
-6. **Add bank account** — `POST /v1/auth/me/bank-accounts/` with bank code and account number (verified against Nomba)
-7. **Set up direct debit mandate** — `POST /v1/payments/mandates/` — authorizes automatic contribution collection from the member's bank
-8. **Contributions collected automatically** — Celery Beat triggers collection on each cycle date; Nomba webhooks confirm payment
-9. **Payout** — once all contributions are collected for a cycle, the pot is transferred directly to the recipient's bank account
+### Backend
+| Layer | Technology |
+|---|---|
+| Language | Python 3.13 |
+| Framework | Django 6, Django REST Framework |
+| Database | PostgreSQL 16 |
+| Cache & Queue | Redis 7, Celery 5, Celery Beat |
+| Authentication | SimpleJWT (JWT access + refresh tokens) |
+| Payments | Nomba API (virtual accounts, direct debit, bank transfers, webhooks) |
+| API Docs | drf-spectacular (OpenAPI 3) |
+
+### Frontend
+| Layer | Technology |
+|---|---|
+| Framework | React 19, TypeScript |
+| Build | Vite 8 |
+| Styling | Tailwind CSS 4 |
+| Routing | React Router 7 |
+| State | Zustand 5 |
+| Data Fetching | TanStack React Query 5, Axios |
+
+### Infrastructure
+| Layer | Technology |
+|---|---|
+| Server | Azure VM |
+| Web Server | nginx + Gunicorn |
+| SSL | Let's Encrypt |
+| CI/CD | GitHub Actions (lint, security scan, auto-deploy) |
+| Monitoring | Prometheus + Grafana |
+| Security Scanning | Bandit, CodeQL |
+
+---
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/v1/auth/register/` | Register a new user |
-| POST | `/v1/auth/login/` | Login, returns JWT tokens |
+| POST | `/v1/auth/login/` | Login — returns JWT access + refresh tokens |
 | POST | `/v1/auth/token/refresh/` | Refresh access token |
 | GET/PATCH | `/v1/auth/me/` | View or update profile |
 | GET | `/v1/auth/banks/` | List supported banks |
@@ -40,10 +104,12 @@ The interactive docs at `/v1/docs/` allow you to explore and test every endpoint
 | GET/POST | `/v1/groups/` | List or create savings groups |
 | GET | `/v1/groups/{id}/` | Group detail |
 | POST | `/v1/groups/{id}/join/` | Join a group |
+| POST | `/v1/groups/join-by-code/` | Join a group using an invite code |
 | POST | `/v1/groups/{id}/activate/` | Activate a full group |
 | POST | `/v1/groups/{id}/cancel/` | Cancel a group |
 | GET | `/v1/groups/{id}/members/` | List group members |
 | GET | `/v1/groups/{id}/cycles/` | View payout cycle schedule |
+| GET | `/v1/groups/memberships/` | Get all groups the current user belongs to |
 | GET | `/v1/wallets/` | List save-ahead wallets |
 | GET | `/v1/wallets/{id}/ledger/` | Wallet transaction history |
 | GET/POST | `/v1/payments/mandates/` | Manage direct debit mandates |
@@ -51,15 +117,9 @@ The interactive docs at `/v1/docs/` allow you to explore and test every endpoint
 | POST | `/v1/payments/webhooks/nomba/` | Nomba payment webhook (HMAC-verified) |
 | GET | `/v1/payouts/` | Payout history |
 
-## Tech Stack
+Full interactive documentation is available at [api.vilapay.ng/v1/docs/](https://api.vilapay.ng/v1/docs/).
 
-- **Backend**: Python 3.13, Django 6, Django REST Framework
-- **Database**: PostgreSQL 16
-- **Cache & Queue**: Redis 7, Celery, Celery Beat
-- **Payments**: Nomba API (virtual accounts, direct debit, bank transfers, webhooks)
-- **Infrastructure**: Azure VM, nginx, Gunicorn, Let's Encrypt SSL
-- **CI/CD**: GitHub Actions (lint, security scan, automated deploy)
-- **Monitoring**: Prometheus + Grafana
+---
 
 ## Quick Test
 
@@ -81,16 +141,53 @@ curl -X POST https://api.vilapay.ng/v1/groups/ \
   -d '{"name":"My Ajo","slot_count":3,"contribution_amount":"5000.00","frequency":"monthly","start_date":"2026-08-01"}'
 ```
 
-Or use the Swagger UI at https://api.vilapay.ng/v1/docs/ to test interactively.
+Or explore everything interactively at [api.vilapay.ng/v1/docs/](https://api.vilapay.ng/v1/docs/).
+
+---
+
+## Business Model
+
+VilaPay operates on a freemium tier system:
+
+| Tier | Target User | Limits |
+|---|---|---|
+| **Free** | Casual users | 1 save-ahead wallet |
+| **Individual Pro** | Active savers | Up to 5 wallets, priority support |
+| **Collector Pro** | Group organizers | Unlimited groups, advanced analytics |
+
+Revenue comes from subscription fees on paid tiers and a small transaction fee on payouts processed through the platform.
+
+---
 
 ## Local Development
 
 ```bash
 git clone https://github.com/kefaslungu/vilapay.git
 cd vilapay
+
+# Backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements/development.txt
 cp .env.example .env  # fill in your values
 python manage.py migrate
 python manage.py runserver
+
+# Frontend (separate terminal)
+cd src/frontend
+npm install
+npm run dev
 ```
+
+---
+
+## Security
+
+- All endpoints protected with JWT authentication
+- Nomba webhook payloads verified using HMAC-SHA256 + Base64
+- Redis-backed rate limiting on all public endpoints
+- Bandit and CodeQL security scanning in CI on every push
+- SSL enforced in production via Let's Encrypt
+
+---
+
+*Built for the DevCareer × Nomba Hackathon 2026.*

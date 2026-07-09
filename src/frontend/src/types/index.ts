@@ -46,9 +46,7 @@ export interface Transaction {
   group_name: string
 }
 
-export interface Wallet {
-  id: string
+export interface WalletSummary {
   balance: string
-  virtual_account_number: string
-  bank_name: string
+  wallet_count: number
 }

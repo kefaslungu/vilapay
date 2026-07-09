@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +9,25 @@ from apps.payments.models import Contribution
 from apps.payouts.models import Payout
 from apps.wallets.models import LedgerEntry, SaveAheadWallet
 from apps.wallets.serializers import LedgerEntrySerializer, SaveAheadWalletSerializer
+
+
+class WalletSummaryView(APIView):
+    """
+    Returns the user's total save-ahead wallet balance across all memberships.
+
+    GET /v1/wallets/me/
+    Returns: { "balance": "12500.00", "wallet_count": 2 }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallets = request.user.save_ahead_wallets.all()
+        total = sum((w.balance for w in wallets), Decimal("0.00"))
+        return Response({
+            "balance": str(total),
+            "wallet_count": wallets.count(),
+        })
 
 
 class WalletListView(APIView):

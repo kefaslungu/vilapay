@@ -1,8 +1,8 @@
 import client from './client'
-import type { Wallet, Transaction } from '@/types'
+import type { WalletSummary, Transaction } from '@/types'
 
 export const walletApi = {
-  mine: () => client.get<Wallet>('/wallets/me/').then((r) => r.data),
+  mine: () => client.get<WalletSummary>('/wallets/me/').then((r) => r.data),
 
   transactions: () =>
     client.get<Transaction[]>('/wallets/transactions/').then((r) => r.data),
